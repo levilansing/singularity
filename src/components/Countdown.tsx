@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import type { Prediction, UrgencyLevel } from "../data/types";
+import { useState, useEffect } from "react";
+import type { Prediction } from "../data/types";
 import { getUrgencyLevel } from "../data/types";
 import { getCommentary } from "../data/commentary";
 import { CountdownDigit } from "./CountdownDigit";
@@ -38,7 +38,7 @@ function computeTimeRemaining(targetDate: string): TimeRemaining {
 }
 
 export function Countdown({ prediction }: CountdownProps) {
-  const urgency = getUrgencyLevel(prediction.target_date);
+  const urgency = getUrgencyLevel(prediction.target_date, prediction.has_countdown);
   const [time, setTime] = useState<TimeRemaining | null>(
     prediction.target_date ? computeTimeRemaining(prediction.target_date) : null
   );
@@ -54,14 +54,34 @@ export function Countdown({ prediction }: CountdownProps) {
   }, [prediction.target_date]);
 
   const isPast = urgency === "past";
+  const isPhilosophical = urgency === "philosophical";
 
   return (
     <div className={`countdown-container urgency-${urgency}`}>
       <div className="countdown-header">
-        {isPast ? "Time since the singularity" : "Time until the singularity"}
+        {isPhilosophical
+          ? "Time until the singularity"
+          : isPast
+            ? "Time since the singularity"
+            : "Time until the singularity"}
       </div>
 
-      {time && (
+      {isPhilosophical && (
+        <div className="countdown-philosophical">
+          <div className="countdown-infinity">
+            <span className="infinity-symbol">∞</span>
+          </div>
+          <div className="countdown-philosophical-labels">
+            <span>Days</span>
+            <span>Hours</span>
+            <span>Minutes</span>
+            <span>Seconds</span>
+            <span>???</span>
+          </div>
+        </div>
+      )}
+
+      {!isPhilosophical && time && (
         <div className="countdown-digits">
           <CountdownDigit value={time.days} label="Days" urgency={urgency} />
           <span className="countdown-separator">:</span>
@@ -75,7 +95,7 @@ export function Countdown({ prediction }: CountdownProps) {
         </div>
       )}
 
-      {!time && (
+      {!isPhilosophical && !time && (
         <div className="countdown-no-date">
           <p>No specific date predicted</p>
           <p className="countdown-subtitle">Just vibes and existential dread</p>
@@ -83,7 +103,11 @@ export function Countdown({ prediction }: CountdownProps) {
       )}
 
       <div className="countdown-prediction-year">
-        {prediction.predicted_year_best ? (
+        {isPhilosophical ? (
+          <>
+            <strong>{prediction.predictor_name}</strong> didn't set a date — just described the abyss
+          </>
+        ) : prediction.predicted_year_best ? (
           <>
             According to <strong>{prediction.predictor_name}</strong>
             {isPast ? ", it already happened in " : ", expect it around "}

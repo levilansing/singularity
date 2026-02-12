@@ -39,6 +39,3 @@ scripts/.venv
 
 # generated data
 src/data/predictions.json
-
-# public headshots (downloaded)
-public/headshots

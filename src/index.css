@@ -56,6 +56,9 @@ body.urgency-near {
 body.urgency-far {
   background: var(--bg);
 }
+body.urgency-philosophical {
+  background: linear-gradient(135deg, #05051a 0%, #0a0a0f 50%, #0a0515 100%);
+}
 
 /* ═══════════════════════════════════════════════════════════
    APP LAYOUT
@@ -172,6 +175,73 @@ body.urgency-far {
   margin-top: 0.5rem;
 }
 
+/* Philosophical countdown — no date, just vibes */
+.countdown-philosophical {
+  padding: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.countdown-infinity {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infinity-symbol {
+  font-family: var(--font-mono);
+  font-size: 6rem;
+  font-weight: 200;
+  line-height: 1;
+  background: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    var(--text-muted) 40%,
+    var(--accent) 60%,
+    var(--text-muted) 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: infinity-shimmer 4s ease-in-out infinite;
+}
+
+@keyframes infinity-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.countdown-philosophical-labels {
+  display: flex;
+  gap: 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.sticky-infinity {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 200;
+  color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .infinity-symbol {
+    font-size: 4rem;
+  }
+  .countdown-philosophical-labels {
+    gap: 1rem;
+    font-size: 0.6rem;
+  }
+}
+
 .countdown-prediction-year {
   font-size: 0.95rem;
   color: var(--text-muted);
@@ -237,11 +307,31 @@ body.urgency-far {
 
 /* ── Urgency: Far ── */
 .countdown-container.urgency-far {
-  background: var(--bg-card);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 .urgency-far .countdown-digit-value {
   color: #e0e0e8;
   text-shadow: 0 0 8px #ffffff15;
+}
+
+/* ── Urgency: Philosophical ── */
+.countdown-container.urgency-philosophical {
+  background: linear-gradient(135deg, #0a0520 0%, #120a20 100%);
+  border-color: #8b5cf620;
+  box-shadow: 0 0 60px #8b5cf610, inset 0 0 60px #8b5cf608;
+}
+.urgency-philosophical .countdown-header {
+  color: #8b5cf690;
+}
+.urgency-philosophical .countdown-prediction-year {
+  color: var(--text-muted);
+}
+
+.sticky-header.urgency-philosophical {
+  background: linear-gradient(135deg, #0a0520e6 0%, #120a20e6 100%);
+  border-color: #8b5cf620;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -326,6 +416,37 @@ body.urgency-far {
   font-size: 1.1rem;
   color: #ffffff;
   border-radius: 50%;
+}
+
+/* PredictorAvatar component */
+.predictor-avatar-img,
+.predictor-avatar-initials {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  color: #ffffff;
+  object-fit: cover;
+}
+
+.predictor-avatar-sm {
+  width: 32px;
+  height: 32px;
+  font-size: 0.75rem;
+}
+
+.predictor-avatar-md {
+  width: 56px;
+  height: 56px;
+  font-size: 1.1rem;
+}
+
+.predictor-avatar-lg {
+  width: 80px;
+  height: 80px;
+  font-size: 1.5rem;
 }
 
 .prediction-card-info {

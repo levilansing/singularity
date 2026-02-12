@@ -301,6 +301,12 @@ def main() -> None:
         help="CSV path (default: data/predictions.csv)",
     )
     parser.add_argument(
+        "-f", "--file",
+        type=Path,
+        metavar="IMAGE",
+        help="Process a single image file instead of CSV/download. Output: -o/cropped/<stem>.jpg",
+    )
+    parser.add_argument(
         "-o", "--output-dir",
         type=Path,
         default=Path("headshots"),
@@ -328,7 +334,16 @@ def main() -> None:
     cropped_dir = base / "cropped"
     report_path = base / "report.json"
 
-    if not args.skip_download:
+    if args.file is not None:
+        # Single file mode: process only this image
+        path = args.file.resolve()
+        if not path.exists():
+            raise SystemExit(f"File not found: {path}")
+        if path.suffix.lower() not in (".jpg", ".jpeg", ".png", ".webp"):
+            raise SystemExit(f"Unsupported image format: {path.suffix}. Use .jpg, .jpeg, .png, or .webp")
+        downloaded = [{"id": slug(path.stem), "path": str(path)}]
+        print(f"Processing single file: {path.name}")
+    elif not args.skip_download:
         if not args.sources.exists():
             raise SystemExit(f"Sources CSV not found: {args.sources}")
         downloaded = download_images(args.sources, downloaded_dir, args.url_column, args.id_column)

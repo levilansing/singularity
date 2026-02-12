@@ -20,7 +20,7 @@ function pickRandom(): Prediction {
 
 export function App() {
   const [selected, setSelected] = useState<Prediction>(() => pickRandom());
-  const urgency = getUrgencyLevel(selected.target_date);
+  const urgency = getUrgencyLevel(selected.target_date, selected.has_countdown);
 
   const handleSelect = useCallback((id: number) => {
     const found = allPredictions.find((p) => p.id === id);

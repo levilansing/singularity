@@ -35,11 +35,21 @@ const farCommentary = [
   "The singularity is always 30 years away. Always.",
 ];
 
+const philosophicalCommentary = [
+  "Some ideas are too big for a calendar.",
+  "You can't set a timer on an inevitability.",
+  "The event horizon doesn't RSVP.",
+  "Not all who predict give dates. Some just point at the abyss.",
+  "No date. No deadline. Just the gathering hum of something approaching.",
+  "Countdown to ∞. Please hold.",
+];
+
 const pools: Record<UrgencyLevel, string[]> = {
   past: pastCommentary,
   imminent: imminentCommentary,
   near: nearCommentary,
   far: farCommentary,
+  philosophical: philosophicalCommentary,
 };
 
 export function getCommentary(urgency: UrgencyLevel): string {

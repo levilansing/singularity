@@ -38,7 +38,7 @@ function computeTimeRemaining(targetDate: string): TimeRemaining {
 
 export function StickyHeader({ prediction }: StickyHeaderProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const urgency = getUrgencyLevel(prediction.target_date);
+  const urgency = getUrgencyLevel(prediction.target_date, prediction.has_countdown);
   const [time, setTime] = useState<TimeRemaining | null>(
     prediction.target_date ? computeTimeRemaining(prediction.target_date) : null
   );
@@ -63,11 +63,17 @@ export function StickyHeader({ prediction }: StickyHeaderProps) {
   }, [prediction.target_date]);
 
   const isPast = urgency === "past";
+  const isPhilosophical = urgency === "philosophical";
 
   return (
     <div className={`sticky-header ${isVisible ? "visible" : ""} urgency-${urgency}`}>
       <div className="sticky-header-content">
-        {time && (
+        {isPhilosophical && (
+          <div className="sticky-header-countdown">
+            <span className="sticky-infinity">∞</span>
+          </div>
+        )}
+        {!isPhilosophical && time && (
           <div className="sticky-header-countdown">
             <CountdownDigit value={time.days} label="D" urgency={urgency} compact />
             <span className="sticky-separator">:</span>
@@ -82,12 +88,18 @@ export function StickyHeader({ prediction }: StickyHeaderProps) {
         )}
         <div className="sticky-header-info">
           <span className="sticky-header-label">
-            {isPast ? "Since" : "Until"} the singularity
+            {isPhilosophical ? "Beyond time" : isPast ? "Since" : "Until"} {isPhilosophical ? "" : "the singularity"}
           </span>
           <span className="sticky-header-prediction">
-            According to <strong>{prediction.predictor_name}</strong>
-            {prediction.predicted_year_best && (
-              <> ({prediction.predicted_year_best})</>
+            {isPhilosophical ? (
+              <strong>{prediction.predictor_name}</strong>
+            ) : (
+              <>
+                According to <strong>{prediction.predictor_name}</strong>
+                {prediction.predicted_year_best && (
+                  <> ({prediction.predicted_year_best})</>
+                )}
+              </>
             )}
           </span>
         </div>

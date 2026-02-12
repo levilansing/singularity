@@ -27,6 +27,9 @@ uv run python process_headshots.py path/to/sources.csv -o path/to/headshots
 
 # Skip download and re-run only detection + crop + normalize on existing downloaded images
 uv run python process_headshots.py --skip-download -o headshots
+
+# Process a single image file (output: -o/cropped/<stem>.jpg)
+uv run python process_headshots.py -f path/to/image.jpg -o headshots
 ```
 
 ### CSV format

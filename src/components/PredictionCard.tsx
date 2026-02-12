@@ -1,53 +1,19 @@
-import { useState } from "react";
 import type { Prediction } from "../data/types";
+import { PredictorAvatar } from "./PredictorAvatar";
 
 interface PredictionCardProps {
   prediction: Prediction;
 }
 
-function Initials({ name }: { name: string }) {
-  const initials = name
-    .split(/[\s&]+/)
-    .filter((w) => w.length > 1)
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join("");
-
-  // Deterministic color from name
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const hue = Math.abs(hash) % 360;
-
-  return (
-    <div
-      className="prediction-card-initials"
-      style={{ backgroundColor: `hsl(${hue}, 40%, 30%)` }}
-    >
-      {initials}
-    </div>
-  );
-}
-
 export function PredictionCard({ prediction }: PredictionCardProps) {
-  const [imgError, setImgError] = useState(false);
-  const hasImage = prediction.headshot_local && !imgError;
-
   return (
     <div className="prediction-card">
       <div className="prediction-card-header">
         <div className="prediction-card-avatar">
-          {hasImage ? (
-            <img
-              src={prediction.headshot_local!}
-              alt={prediction.predictor_name}
-              className="prediction-card-headshot"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <Initials name={prediction.predictor_name} />
-          )}
+          <PredictorAvatar
+            name={prediction.predictor_name}
+            headshotLocal={prediction.headshot_local}
+          />
         </div>
         <div className="prediction-card-info">
           <h2 className="prediction-card-name">{prediction.predictor_name}</h2>

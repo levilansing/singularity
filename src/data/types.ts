@@ -20,9 +20,10 @@ export interface Prediction {
   headshot_local: string | null;
 }
 
-export type UrgencyLevel = "past" | "imminent" | "near" | "far";
+export type UrgencyLevel = "past" | "imminent" | "near" | "far" | "philosophical";
 
-export function getUrgencyLevel(targetDate: string | null): UrgencyLevel {
+export function getUrgencyLevel(targetDate: string | null, hasCountdown?: boolean): UrgencyLevel {
+  if (!targetDate && !hasCountdown) return "philosophical";
   if (!targetDate) return "far";
   const now = Date.now();
   const target = new Date(targetDate).getTime();
