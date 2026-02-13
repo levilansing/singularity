@@ -94,11 +94,84 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null); // null = all active
 
+  // Entrance animation state
+  const hasAnimated = useRef(false);
+  const animationRef = useRef<number>(0);
+
   // Only include predictions with at least a best year for x-axis
   const timelinePredictions = useMemo(
     () => predictions.filter((p) => p.predicted_year_best !== null),
     [predictions]
   );
+
+  // Sorted prediction dates (as fractional years) for time-based entrance animation
+  const predictionTimeline = useMemo(() => {
+    const entries = timelinePredictions.map((p) => ({
+      id: p.id,
+      fy: dateToFractionalYear(p.prediction_date),
+    }));
+    entries.sort((a, b) => a.fy - b.fy);
+    return entries;
+  }, [timelinePredictions]);
+
+  const timeRange = useMemo(() => {
+    if (predictionTimeline.length === 0) return { min: 0, max: 0 };
+    return { min: predictionTimeline[0]!.fy, max: predictionTimeline[predictionTimeline.length - 1]!.fy };
+  }, [predictionTimeline]);
+
+  // animationYear: null = show all, number = show predictions made on or before this year
+  const [animationYear, setAnimationYear] = useState<number | null>(null);
+
+  const visibleIdSet = useMemo(() => {
+    if (animationYear === null) return null; // show all
+    const set = new Set<number>();
+    for (const entry of predictionTimeline) {
+      if (entry.fy <= animationYear) set.add(entry.id);
+      else break;
+    }
+    return set;
+  }, [animationYear, predictionTimeline]);
+
+  const startAnimation = useCallback(() => {
+    cancelAnimationFrame(animationRef.current);
+    if (predictionTimeline.length === 0) { setAnimationYear(null); return; }
+    const { min, max } = timeRange;
+    setAnimationYear(min - 1);
+    const duration = 3000;
+    const start = performance.now();
+    const step = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const currentYear = min + progress * (max - min);
+      if (progress >= 1) {
+        setAnimationYear(null);
+      } else {
+        setAnimationYear(currentYear);
+        animationRef.current = requestAnimationFrame(step);
+      }
+    };
+    animationRef.current = requestAnimationFrame(step);
+  }, [predictionTimeline, timeRange]);
+
+  // IntersectionObserver to trigger animation on first view
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          startAnimation();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [startAnimation]);
+
+  // Cleanup animation on unmount
+  useEffect(() => () => cancelAnimationFrame(animationRef.current), []);
 
   // Data bounds (full extent)
   const dataBounds = useMemo(() => {
@@ -452,6 +525,18 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
             Year prediction was made
           </text>
 
+          {/* y=x diagonal — "predicted for when it was made" */}
+          <line
+            x1={xScale(vp.yMin, svgWidth)}
+            y1={yScale(vp.yMin)}
+            x2={xScale(vp.yMax, svgWidth)}
+            y2={yScale(vp.yMax)}
+            stroke="#ffffff30"
+            strokeWidth={1}
+            strokeDasharray="4 4"
+            clipPath="url(#chart-clip)"
+          />
+
           {/* NOW vertical line */}
           {(() => {
             const nowX = xScale(currentYear, svgWidth);
@@ -487,6 +572,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           {/* Layer 1: Range lines (behind everything) */}
           <g clipPath="url(#chart-clip)">
             {sortedPredictions.map((p) => {
+              if (visibleIdSet !== null && !visibleIdSet.has(p.id)) return null;
               const predictionFY = dateToFractionalYear(p.prediction_date);
               if (isNaN(predictionFY)) return null;
               if (!p.predicted_date_low || !p.predicted_date_high) return null;
@@ -516,6 +602,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           {/* Layer 2: Dots (sorted so nearest-date renders last = on top) */}
           <g clipPath="url(#chart-clip)">
             {sortedPredictions.map((p) => {
+              if (visibleIdSet !== null && !visibleIdSet.has(p.id)) return null;
               const predictionFY = dateToFractionalYear(p.prediction_date);
               if (isNaN(predictionFY)) return null;
               const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best!;
@@ -526,6 +613,9 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
               const color = active ? getTypeColor(p.prediction_type) : "#333340";
               const isSelected = p.id === selectedId;
               const isHovered = p.id === hoveredId;
+
+              // Selected dot rendered separately on top
+              if (isSelected) return null;
 
               if (!active) {
                 return (
@@ -545,14 +635,40 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
                   key={`dot-${p.id}`}
                   cx={cx}
                   cy={cy}
-                  r={isSelected ? POINT_RADIUS + 2 : POINT_RADIUS}
+                  r={POINT_RADIUS}
                   fill={color}
-                  opacity={isHovered ? 1 : (isSelected ? 1 : 0.7)}
-                  stroke={isHovered || isSelected ? "#fff" : "none"}
-                  strokeWidth={isHovered ? 1.5 : (isSelected ? 2 : 0)}
+                  opacity={isHovered ? 1 : 0.7}
+                  stroke={isHovered ? "#fff" : "none"}
+                  strokeWidth={isHovered ? 1.5 : 0}
                 />
               );
             })}
+          </g>
+
+          {/* Selected dot (rendered on top of all other dots) */}
+          <g clipPath="url(#chart-clip)">
+            {(() => {
+              const p = sortedPredictions.find((p) => p.id === selectedId);
+              if (!p) return null;
+              if (visibleIdSet !== null && !visibleIdSet.has(p.id)) return null;
+              const predictionFY = dateToFractionalYear(p.prediction_date);
+              if (isNaN(predictionFY)) return null;
+              const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best!;
+              const cx = xScale(bestFY, svgWidth);
+              const cy = yScale(predictionFY) + (overlapOffsets.get(p.id) ?? 0);
+              const color = getTypeColor(p.prediction_type);
+              return (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={POINT_RADIUS + 2}
+                  fill={color}
+                  opacity={1}
+                  stroke="#fff"
+                  strokeWidth={2}
+                />
+              );
+            })()}
           </g>
 
           {/* Layer 3: Invisible hit areas — sorted by SVG y ascending so
@@ -561,6 +677,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           <g clipPath="url(#chart-clip)">
             {sortedPredictions
               .filter((p) => {
+                if (visibleIdSet !== null && !visibleIdSet.has(p.id)) return false;
                 if (isNaN(dateToFractionalYear(p.prediction_date))) return false;
                 return isTypeActive(p.prediction_type);
               })
@@ -594,7 +711,15 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
         </svg>
       </div>
 
-      <div className="text-center text-[0.65rem] text-(--text-dim) opacity-50 mt-1.5 select-none">Scroll to zoom · Drag to pan · Double-click to reset · Click legend to filter</div>
+      <div className="flex items-center justify-center gap-3 mt-1.5">
+        <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none">Scroll to zoom · Drag to pan · Double-click to reset · Click legend to filter</span>
+        <button
+          className="text-[0.65rem] text-(--text-dim) opacity-50 hover:opacity-80 cursor-pointer transition-opacity select-none"
+          onClick={startAnimation}
+        >
+          ↻ Replay
+        </button>
+      </div>
 
       {tooltip && <TimelineTooltip prediction={tooltip.prediction} x={tooltip.x} y={tooltip.y} />}
     </div>

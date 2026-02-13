@@ -90,14 +90,14 @@ function PredictionPage() {
         />
 
         <Countdown prediction={selected} />
-        <PredictionCard prediction={selected} />
-        <ConceptBlurbs prediction={selected} />
 
         <section className="mb-16">
-          <h2 className="font-mono text-[1.3rem] font-bold text-center m-0 mb-1 text-(--text)">Every Prediction, Visualized</h2>
-          <p className="text-center text-(--text-muted) text-[0.85rem] m-0 mb-4">Click any prediction to update the countdown</p>
+          <h2 className="font-mono text-[1.3rem] font-bold text-center m-0 mb-5 text-(--text)">Every Prediction, Visualized</h2>
           <Timeline predictions={allPredictions} selectedId={selected.id} onSelect={handleSelect} />
         </section>
+
+        <PredictionCard prediction={selected} />
+        <ConceptBlurbs prediction={selected} />
 
         <SingularityInfo />
         <Footer />
