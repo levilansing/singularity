@@ -23,18 +23,22 @@ function nameToHue(name: string): number {
   return Math.abs(hash) % 360;
 }
 
+const sizeClasses = {
+  sm: "size-8 text-xs",
+  md: "size-14 text-[1.1rem]",
+  lg: "size-20 text-2xl",
+} as const;
+
 export function PredictorAvatar({ name, headshotLocal, size = "md" }: PredictorAvatarProps) {
   const [imgError, setImgError] = useState(false);
   const hasImage = headshotLocal && !imgError;
-
-  const sizeClass = `predictor-avatar-${size}`;
 
   if (hasImage) {
     return (
       <img
         src={headshotLocal!}
         alt={name}
-        className={`predictor-avatar-img ${sizeClass}`}
+        className={`rounded-full object-cover ${sizeClasses[size]}`}
         onError={() => setImgError(true)}
       />
     );
@@ -43,7 +47,7 @@ export function PredictorAvatar({ name, headshotLocal, size = "md" }: PredictorA
   const hue = nameToHue(name);
   return (
     <div
-      className={`predictor-avatar-initials ${sizeClass}`}
+      className={`rounded-full flex items-center justify-center font-bold text-white ${sizeClasses[size]}`}
       style={{ backgroundColor: `hsl(${hue}, 40%, 30%)` }}
     >
       {nameToInitials(name)}

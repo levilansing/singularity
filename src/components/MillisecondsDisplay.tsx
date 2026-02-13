@@ -19,11 +19,11 @@ export function MillisecondsDisplay() {
   const ref = useRef<HTMLSpanElement>(null);
   useMilliseconds(ref);
   return (
-    <div className="countdown-digit-group countdown-ms-group">
-      <div className="countdown-digit-value countdown-ms-value">
+    <div className="countdown-digit-group flex flex-col items-center min-w-14 max-sm:min-w-10">
+      <div className="countdown-digit-value countdown-ms-value font-mono text-[clamp(2rem,6vw,4rem)] font-bold leading-none text-(--text) tabular-nums">
         <span ref={ref}>000</span>
       </div>
-      <div className="countdown-digit-label">Milliseconds</div>
+      <div className="text-[0.7rem] uppercase tracking-widest text-(--text-muted) mt-1.5">Milliseconds</div>
     </div>
   );
 }
@@ -32,11 +32,11 @@ export function MillisecondsDisplayCompact() {
   const ref = useRef<HTMLSpanElement>(null);
   useMilliseconds(ref);
   return (
-    <div className="countdown-digit-group compact countdown-ms-group">
-      <div className="countdown-digit-value countdown-ms-value">
+    <div className="countdown-digit-group compact flex flex-col items-center !min-w-0">
+      <div className="countdown-digit-value countdown-ms-value font-mono text-[clamp(2rem,6vw,4rem)] font-bold leading-none text-(--text) tabular-nums">
         <span ref={ref}>000</span>
       </div>
-      <div className="countdown-digit-label">MS</div>
+      <div className="text-[0.7rem] uppercase tracking-widest text-(--text-muted) mt-1.5">MS</div>
     </div>
   );
 }

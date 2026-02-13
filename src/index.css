@@ -61,203 +61,19 @@ body.urgency-philosophical {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   APP LAYOUT
+   APP TITLE GRADIENT (can't do animated gradient text in TW)
    ═══════════════════════════════════════════════════════════ */
 
-.app {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 1rem;
-}
-
-.app-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
 .app-title {
-  font-family: var(--font-mono);
-  font-size: clamp(1.8rem, 5vw, 3rem);
-  font-weight: 700;
-  margin: 0 0 0.25rem;
-  letter-spacing: -0.02em;
   background: linear-gradient(135deg, #e0e0e8, #8b5cf6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.app-subtitle {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  margin: 0;
-  font-style: italic;
-}
-
 /* ═══════════════════════════════════════════════════════════
-   COUNTDOWN
+   URGENCY COUNTDOWN OVERRIDES
    ═══════════════════════════════════════════════════════════ */
-
-.countdown-container {
-  text-align: center;
-  padding: 2.5rem 1rem;
-  margin-bottom: 3rem;
-  border-radius: 12px;
-  background: var(--bg-card);
-  border: 1px solid #ffffff08;
-  transition: all 0.5s ease;
-}
-
-.countdown-header {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-  margin-bottom: 1.5rem;
-}
-
-.countdown-digits {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 0.25rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.countdown-separator {
-  font-family: var(--font-mono);
-  font-size: clamp(2rem, 6vw, 4rem);
-  font-weight: 700;
-  color: var(--text-dim);
-  line-height: 1;
-  padding-top: 0.1em;
-}
-
-.countdown-digit-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 3.5rem;
-}
-
-.countdown-digit-value {
-  font-family: var(--font-mono);
-  font-size: clamp(2rem, 6vw, 4rem);
-  font-weight: 700;
-  line-height: 1;
-  color: var(--text);
-  transition: color 0.5s ease, text-shadow 0.5s ease;
-  font-variant-numeric: tabular-nums;
-}
-
-.countdown-negative {
-  color: inherit;
-}
-
-.countdown-digit-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-top: 0.4rem;
-}
-
-.countdown-no-date {
-  font-family: var(--font-mono);
-  font-size: 1.5rem;
-  color: var(--text-muted);
-  padding: 2rem 0;
-}
-.countdown-no-date .countdown-subtitle {
-  font-size: 0.9rem;
-  color: var(--text-dim);
-  margin-top: 0.5rem;
-}
-
-/* Philosophical countdown — no date, just vibes */
-.countdown-philosophical {
-  padding: 1.5rem 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.countdown-infinity {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.infinity-symbol {
-  font-family: var(--font-mono);
-  font-size: 6rem;
-  font-weight: 200;
-  line-height: 1;
-  background: linear-gradient(
-    135deg,
-    var(--accent) 0%,
-    var(--text-muted) 40%,
-    var(--accent) 60%,
-    var(--text-muted) 100%
-  );
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: infinity-shimmer 4s ease-in-out infinite;
-}
-
-@keyframes infinity-shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.countdown-philosophical-labels {
-  display: flex;
-  gap: 2rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-dim);
-}
-
-.sticky-infinity {
-  font-family: var(--font-mono);
-  font-size: 1.5rem;
-  font-weight: 200;
-  color: var(--accent);
-}
-
-@media (max-width: 640px) {
-  .infinity-symbol {
-    font-size: 4rem;
-  }
-  .countdown-philosophical-labels {
-    gap: 1rem;
-    font-size: 0.6rem;
-  }
-}
-
-.countdown-prediction-year {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  margin-bottom: 0.75rem;
-}
-.countdown-prediction-year strong {
-  color: var(--text);
-}
-
-.countdown-commentary {
-  font-size: 0.9rem;
-  font-style: italic;
-  color: var(--text-dim);
-  max-width: 500px;
-  margin: 0 auto;
-}
 
 /* ── Urgency: Past ── */
 .countdown-container.urgency-past {
@@ -329,9 +145,23 @@ body.urgency-philosophical {
   color: var(--text-muted);
 }
 
+/* ── Sticky Header Urgency States ── */
 .sticky-header.urgency-philosophical {
   background: linear-gradient(135deg, #0a0520e6 0%, #120a20e6 100%);
   border-color: #8b5cf620;
+}
+.sticky-header.urgency-past {
+  background: linear-gradient(135deg, #1a0808e6 0%, #200a0ae6 100%);
+  border-color: #ff2a2a20;
+  box-shadow: 0 2px 20px #ff000015;
+}
+.sticky-header.urgency-imminent {
+  background: linear-gradient(135deg, #1a0a08e6 0%, #200e0ae6 100%);
+  border-color: #ff442a20;
+}
+.sticky-header.urgency-near {
+  background: linear-gradient(135deg, #1a1508e6 0%, #201a0ae6 100%);
+  border-color: #fbbf2420;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -354,9 +184,32 @@ body.urgency-philosophical {
   50% { opacity: 0.85; }
 }
 
+/* ── Infinity symbol (gradient text animation) ── */
+.infinity-symbol {
+  font-family: var(--font-mono);
+  font-size: 6rem;
+  font-weight: 200;
+  line-height: 1;
+  background: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    var(--text-muted) 40%,
+    var(--accent) 60%,
+    var(--text-muted) 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: infinity-shimmer 4s ease-in-out infinite;
+}
+
+@keyframes infinity-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
 
 /* ── Milliseconds: isolate from urgency effects ── */
-
 .countdown-ms-value {
   font-variant-numeric: tabular-nums;
   transition: none !important;
@@ -365,335 +218,13 @@ body.urgency-philosophical {
   will-change: contents;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation: none !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PREDICTION CARD
-   ═══════════════════════════════════════════════════════════ */
-
-.prediction-card {
-  background: var(--bg-card);
-  border: 1px solid #ffffff08;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 4rem;
-}
-
-.prediction-card-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.prediction-card-avatar {
-  flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.prediction-card-headshot {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.prediction-card-initials {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #ffffff;
-  border-radius: 50%;
-}
-
-/* PredictorAvatar component */
-.predictor-avatar-img,
-.predictor-avatar-initials {
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-sans);
-  font-weight: 700;
-  color: #ffffff;
-  object-fit: cover;
-}
-
-.predictor-avatar-sm {
-  width: 32px;
-  height: 32px;
-  font-size: 0.75rem;
-}
-
-.predictor-avatar-md {
-  width: 56px;
-  height: 56px;
-  font-size: 1.1rem;
-}
-
-.predictor-avatar-lg {
-  width: 80px;
-  height: 80px;
-  font-size: 1.5rem;
-}
-
-.prediction-card-info {
-  min-width: 0;
-}
-
-.prediction-card-name {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem;
-  color: var(--text);
-}
-
-.prediction-card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.prediction-card-type {
-  background: #8b5cf620;
-  color: #a78bfa;
-  padding: 0.1rem 0.5rem;
-  border-radius: 99px;
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-
-.prediction-card-dot {
-  color: var(--text-dim);
-}
-
-.prediction-card-headline {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-  color: var(--text);
-  line-height: 1.4;
-}
-
-.prediction-card-summary {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-  margin: 0 0 0.75rem;
-}
-
-.prediction-card-source {
-  font-size: 0.8rem;
-  color: var(--accent);
-  font-weight: 500;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PREDICTION PICKER
-   ═══════════════════════════════════════════════════════════ */
-
-.prediction-picker {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.prediction-picker-select {
-  background: var(--bg-card);
-  color: var(--text);
-  border: 1px solid #ffffff15;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  min-width: 250px;
-  max-width: 400px;
-}
-.prediction-picker-select:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.prediction-picker-random {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.prediction-picker-random:hover {
-  opacity: 0.85;
-}
-.swap-icon {
-  width: 18px;
-  height: 18px;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   TIMELINE
-   ═══════════════════════════════════════════════════════════ */
-
-.timeline-section {
-  margin-bottom: 4rem;
-}
-
-.section-title {
-  font-family: var(--font-mono);
-  font-size: 1.3rem;
-  font-weight: 700;
-  text-align: center;
-  margin: 0 0 0.25rem;
-  color: var(--text);
-}
-
-.section-subtitle {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  margin: 0 0 1rem;
-}
-
-.timeline-container {
-  position: relative;
-  background: var(--bg-card);
-  border: 1px solid #ffffff08;
-  border-radius: 12px;
-  padding: 1rem;
-  overflow-x: auto;
-}
-
-.timeline-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  justify-content: center;
-  margin-bottom: 0.75rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.timeline-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.timeline-legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.timeline-chart-area {
-  display: flex;
-  align-items: stretch;
-}
-
-.timeline-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-  flex: 1;
-  min-width: 0;
-}
-
-.timeline-hint {
-  text-align: center;
-  font-size: 0.65rem;
-  color: var(--text-dim);
-  opacity: 0.5;
-  margin-top: 0.35rem;
-  user-select: none;
-}
-
+/* ── Timeline row hover ── */
 .timeline-row:hover circle,
 .timeline-row:hover rect:not([fill="transparent"]) {
   filter: brightness(1.3);
 }
 
-/* ── Timeline Tooltip ── */
-
-.timeline-tooltip {
-  position: absolute;
-  pointer-events: none;
-  background: #1a1a28ee;
-  border: 1px solid #ffffff20;
-  border-radius: 8px;
-  padding: 0.6rem 0.8rem;
-  max-width: 280px;
-  z-index: 50;
-  font-size: 0.8rem;
-  box-shadow: 0 4px 20px #00000060;
-}
-
-.timeline-tooltip-name {
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 0.15rem;
-}
-
-.timeline-tooltip-year {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--accent);
-  font-size: 0.9rem;
-}
-
-.timeline-tooltip-type {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-bottom: 0.3rem;
-}
-
-.timeline-tooltip-headline {
-  color: var(--text-muted);
-  line-height: 1.4;
-  font-size: 0.75rem;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SINGULARITY INFO
-   ═══════════════════════════════════════════════════════════ */
-
-.singularity-info {
-  margin-bottom: 4rem;
-}
-
-.singularity-info-content {
-  background: var(--bg-card);
-  border: 1px solid #ffffff08;
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
+/* ── Singularity info content paragraphs ── */
 .singularity-info-content p {
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -707,104 +238,31 @@ body.urgency-philosophical {
   color: var(--text);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   FOOTER
-   ═══════════════════════════════════════════════════════════ */
-
-.app-footer {
-  text-align: center;
-  padding: 2rem 0;
-  border-top: 1px solid #ffffff08;
-  color: var(--text-dim);
-  font-size: 0.8rem;
-}
-.app-footer p {
-  margin: 0 0 0.3rem;
-}
-.app-footer-sub {
-  font-size: 0.7rem;
-  max-width: 500px;
-  margin: 0 auto !important;
-  line-height: 1.5;
+/* ── Prediction year strong ── */
+.countdown-prediction-year strong {
+  color: var(--text);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════
-   STICKY HEADER
-   ═══════════════════════════════════════════════════════════ */
-
-.sticky-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: var(--bg-card);
-  border-bottom: 1px solid #ffffff08;
-  backdrop-filter: blur(10px);
-  background: #12121ae6;
-  transform: translateY(-100%);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.sticky-header.visible {
-  transform: translateY(0);
-}
-
-.sticky-header-content {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.sticky-header-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.sticky-header-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-}
-
-.sticky-header-prediction {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
+/* ── Sticky header prediction strong ── */
 .sticky-header-prediction strong {
   color: var(--text);
 }
 
-.sticky-header-countdown {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.15rem;
+/* ── Footer paragraph spacing ── */
+.app-footer p {
+  margin: 0 0 0.3rem;
 }
 
-.sticky-separator {
-  font-family: var(--font-mono);
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-dim);
-  line-height: 1.4;
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE (urgency-scoped compact overrides)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Sticky header visibility */
+.sticky-header.visible {
+  translate: 0 0;
 }
 
-.countdown-digit-group.compact {
-  min-width: auto;
-}
-
+/* Compact digit overrides for sticky header */
 .countdown-digit-group.compact .countdown-digit-value {
   font-size: 1.2rem;
 }
@@ -814,52 +272,9 @@ body.urgency-philosophical {
   margin-top: 0.2rem;
 }
 
-/* ── Sticky Header Urgency States ── */
-.sticky-header.urgency-past {
-  background: linear-gradient(135deg, #1a0808e6 0%, #200a0ae6 100%);
-  border-color: #ff2a2a20;
-  box-shadow: 0 2px 20px #ff000015;
-}
-
-.sticky-header.urgency-imminent {
-  background: linear-gradient(135deg, #1a0a08e6 0%, #200e0ae6 100%);
-  border-color: #ff442a20;
-}
-
-.sticky-header.urgency-near {
-  background: linear-gradient(135deg, #1a1508e6 0%, #201a0ae6 100%);
-  border-color: #fbbf2420;
-}
-
 @media (max-width: 640px) {
-  .app {
-    padding: 1rem 0.75rem 0.5rem;
-  }
-  .countdown-container {
-    padding: 1.5rem 0.75rem;
-  }
-  .prediction-card {
-    padding: 1rem;
-  }
-  .countdown-digits {
-    gap: 0.1rem;
-  }
-  .countdown-digit-group {
-    min-width: 2.5rem;
-  }
-  .prediction-picker-select {
-    min-width: 0;
-    flex: 1;
-  }
-  .sticky-header-content {
-    padding: 0.5rem 0.75rem;
-    justify-content: center;
-  }
-  .sticky-header-info {
-    text-align: center;
-  }
-  .sticky-header-countdown {
-    gap: 0.1rem;
+  .infinity-symbol {
+    font-size: 4rem;
   }
   .countdown-digit-group.compact .countdown-digit-value {
     font-size: 1rem;
@@ -867,7 +282,11 @@ body.urgency-philosophical {
   .countdown-digit-group.compact .countdown-digit-label {
     font-size: 0.5rem;
   }
-  .sticky-separator {
-    font-size: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
   }
 }

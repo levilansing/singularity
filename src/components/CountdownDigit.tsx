@@ -16,12 +16,12 @@ export function CountdownDigit({ value, label, urgency, compact = false }: Count
   const formatted = String(displayValue).padStart(padLength, "0");
 
   return (
-    <div className={`countdown-digit-group urgency-${urgency} ${compact ? "compact" : ""}`}>
-      <div className="countdown-digit-value">
-        {isNegative && (label === "Days" || label === "D") && <span className="countdown-negative">-</span>}
+    <div className={`countdown-digit-group flex flex-col items-center ${compact ? "compact !min-w-0" : "min-w-14 max-sm:min-w-10"} urgency-${urgency}`}>
+      <div className="countdown-digit-value font-mono text-[clamp(2rem,6vw,4rem)] font-bold leading-none text-(--text) transition-[color,text-shadow] duration-500 tabular-nums">
+        {isNegative && (label === "Days" || label === "D") && <span>-</span>}
         {formatted}
       </div>
-      <div className="countdown-digit-label">{label}</div>
+      <div className="text-[0.7rem] uppercase tracking-widest text-(--text-muted) mt-1.5">{label}</div>
     </div>
   );
 }

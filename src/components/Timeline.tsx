@@ -50,6 +50,30 @@ function generateTicks(min: number, max: number): number[] {
   return result;
 }
 
+const BUFFER_RATIO = 0.1;
+function clampViewport(
+  vp: { xMin: number; xMax: number; yMin: number; yMax: number },
+  bounds: { xMin: number; xMax: number; yMin: number; yMax: number }
+) {
+  const xBuf = (bounds.xMax - bounds.xMin) * BUFFER_RATIO;
+  const yBuf = (bounds.yMax - bounds.yMin) * BUFFER_RATIO;
+  const minX = bounds.xMin - xBuf;
+  const maxX = bounds.xMax + xBuf;
+  const minY = bounds.yMin - yBuf;
+  const maxY = bounds.yMax + yBuf;
+
+  let { xMin, xMax, yMin, yMax } = vp;
+  const xRange = xMax - xMin;
+  const yRange = yMax - yMin;
+
+  if (xMin < minX) { xMin = minX; xMax = minX + xRange; }
+  if (xMax > maxX) { xMax = maxX; xMin = maxX - xRange; }
+  if (yMin < minY) { yMin = minY; yMax = minY + yRange; }
+  if (yMax > maxY) { yMax = maxY; yMin = maxY - yRange; }
+
+  return { xMin, xMax, yMin, yMax };
+}
+
 export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<{ prediction: Prediction; x: number; y: number } | null>(null);
@@ -112,6 +136,29 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     },
     [vp.yMin, vp.yMax]
   );
+
+  // Compute vertical offsets for overlapping points
+  const overlapOffsets = useMemo(() => {
+    const groups = new Map<string, number[]>();
+    for (const p of timelinePredictions) {
+      const predYear = parseInt(p.prediction_date, 10);
+      if (isNaN(predYear) || p.predicted_year_best === null) continue;
+      const key = `${p.predicted_year_best}:${predYear}`;
+      const group = groups.get(key);
+      if (group) group.push(p.id);
+      else groups.set(key, [p.id]);
+    }
+    const offsets = new Map<number, number>();
+    for (const ids of groups.values()) {
+      if (ids.length <= 1) continue;
+      const spacing = POINT_RADIUS * 1.5;
+      const totalHeight = (ids.length - 1) * spacing;
+      for (let i = 0; i < ids.length; i++) {
+        offsets.set(ids[i]!, -totalHeight / 2 + i * spacing);
+      }
+    }
+    return offsets;
+  }, [timelinePredictions]);
 
   const currentYear = new Date().getFullYear() + new Date().getMonth() / 12;
 
@@ -183,17 +230,17 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       // Don't zoom in too far or out too far
       if (newXRange < 5 || newYRange < 5 || newXRange > 500 || newYRange > 500) return;
 
-      setViewport({
+      setViewport(clampViewport({
         xMin: yearAtCursorX - fx * newXRange,
         xMax: yearAtCursorX + (1 - fx) * newXRange,
         yMin: yearAtCursorY - fy * newYRange,
         yMax: yearAtCursorY + (1 - fy) * newYRange,
-      });
+      }, dataBounds));
     };
 
     svg.addEventListener("wheel", onWheel, { passive: false });
     return () => svg.removeEventListener("wheel", onWheel);
-  }, [svgWidth, svgHeight, vp]);
+  }, [svgWidth, svgHeight, vp, dataBounds]);
 
   // Pan handler (drag)
   const isPanning = useRef(false);
@@ -224,13 +271,13 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     const xShift = (dx / plotWidth) * (pv.xMax - pv.xMin);
     const yShift = (dy / CHART_HEIGHT) * (pv.yMax - pv.yMin);
 
-    setViewport({
+    setViewport(clampViewport({
       xMin: pv.xMin - xShift,
       xMax: pv.xMax - xShift,
       yMin: pv.yMin + yShift, // inverted Y
       yMax: pv.yMax + yShift,
-    });
-  }, [svgWidth, svgHeight]);
+    }, dataBounds));
+  }, [svgWidth, svgHeight, dataBounds]);
 
   const onPointerUp = useCallback(() => {
     isPanning.current = false;
@@ -242,20 +289,20 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   }, [dataBounds]);
 
   return (
-    <div className="timeline-container" ref={containerRef}>
-      <div className="timeline-legend">
+    <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-4 overflow-x-auto" ref={containerRef}>
+      <div className="flex flex-wrap gap-3 justify-center mb-3 text-xs text-(--text-muted)">
         {Object.entries(TYPE_COLORS).map(([type, color]) => (
-          <span key={type} className="timeline-legend-item">
-            <span className="timeline-legend-dot" style={{ backgroundColor: color }} />
+          <span key={type} className="flex items-center gap-1">
+            <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
             {type}
           </span>
         ))}
       </div>
 
-      <div className="timeline-chart-area">
+      <div className="flex items-stretch">
         <svg
           ref={resizeRef}
-          className="timeline-svg"
+          className="w-full h-auto block flex-1 min-w-0"
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -362,7 +409,8 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
               const predictionYear = parseInt(p.prediction_date, 10);
               if (isNaN(predictionYear)) return null;
               const cx = xScale(p.predicted_year_best!, svgWidth);
-              const cy = yScale(predictionYear);
+              const cyBase = yScale(predictionYear);
+              const cy = cyBase + (overlapOffsets.get(p.id) ?? 0);
               const color = getTypeColor(p.prediction_type);
               const isSelected = p.id === selectedId;
               const opacity = isSelected ? 1 : 0.7;
@@ -410,7 +458,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
         </svg>
       </div>
 
-      <div className="timeline-hint">Scroll to zoom · Drag to pan · Double-click to reset</div>
+      <div className="text-center text-[0.65rem] text-(--text-dim) opacity-50 mt-1.5 select-none">Scroll to zoom · Drag to pan · Double-click to reset</div>
 
       {tooltip && <TimelineTooltip prediction={tooltip.prediction} x={tooltip.x} y={tooltip.y} />}
     </div>

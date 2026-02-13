@@ -7,39 +7,39 @@ interface PredictionCardProps {
 
 export function PredictionCard({ prediction }: PredictionCardProps) {
   return (
-    <div className="prediction-card">
-      <div className="prediction-card-header">
-        <div className="prediction-card-avatar">
+    <div className="bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 mb-16 max-sm:p-4">
+      <div className="flex items-center gap-4 mb-4">
+        <div className="shrink-0 size-14 rounded-full overflow-hidden">
           <PredictorAvatar
             name={prediction.predictor_name}
             headshotLocal={prediction.headshot_local}
           />
         </div>
-        <div className="prediction-card-info">
-          <h2 className="prediction-card-name">{prediction.predictor_name}</h2>
-          <div className="prediction-card-meta">
-            <span className="prediction-card-type">{prediction.prediction_type}</span>
-            <span className="prediction-card-dot">·</span>
-            <span className="prediction-card-date">Predicted in {prediction.prediction_date}</span>
+        <div className="min-w-0">
+          <h2 className="text-[1.1rem] font-semibold m-0 mb-1 text-(--text)">{prediction.predictor_name}</h2>
+          <div className="flex flex-wrap items-center gap-1.5 text-[0.8rem] text-(--text-muted)">
+            <span className="bg-[#8b5cf620] text-[#a78bfa] px-2 py-0.5 rounded-full text-[0.7rem] font-medium">{prediction.prediction_type}</span>
+            <span className="text-(--text-dim)">·</span>
+            <span>Predicted in {prediction.prediction_date}</span>
             {prediction.confidence_level && (
               <>
-                <span className="prediction-card-dot">·</span>
-                <span className="prediction-card-confidence">{prediction.confidence_level}</span>
+                <span className="text-(--text-dim)">·</span>
+                <span>{prediction.confidence_level}</span>
               </>
             )}
           </div>
         </div>
       </div>
 
-      <h3 className="prediction-card-headline">{prediction.headline}</h3>
-      <p className="prediction-card-summary">{prediction.tldr_summary}</p>
+      <h3 className="text-base font-semibold m-0 mb-2 text-(--text) leading-snug">{prediction.headline}</h3>
+      <p className="text-[0.85rem] text-(--text-muted) leading-relaxed m-0 mb-3">{prediction.tldr_summary}</p>
 
       {prediction.source_url && (
         <a
           href={prediction.source_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="prediction-card-source"
+          className="text-[0.8rem] text-(--accent) font-medium"
         >
           {prediction.source_name || "Source"} →
         </a>

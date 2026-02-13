@@ -154,4 +154,23 @@ const outputTable = result.outputs.map(output => ({
 console.table(outputTable);
 const buildTime = (end - start).toFixed(2);
 
+// Copy public/ assets to dist/
+const publicDir = path.join(process.cwd(), "public");
+if (existsSync(publicDir)) {
+  console.log("📂 Copying public/ assets to dist/...");
+  const cp = Bun.spawnSync(["cp", "-r", publicDir + "/.", outdir], { stdout: "inherit", stderr: "inherit" });
+  if (cp.exitCode !== 0) {
+    console.error("❌ Failed to copy public assets");
+    process.exit(1);
+  }
+}
+
+// Generate sitemap
+console.log("📍 Generating sitemap...");
+const sitemapResult = Bun.spawnSync(["bun", "scripts/generate-sitemap.ts", outdir], { cwd: process.cwd(), stdout: "inherit", stderr: "inherit" });
+if (sitemapResult.exitCode !== 0) {
+  console.error("❌ Sitemap generation failed");
+  process.exit(1);
+}
+
 console.log(`\n✅ Build completed in ${buildTime}ms\n`);

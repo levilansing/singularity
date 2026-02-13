@@ -66,31 +66,31 @@ export function StickyHeader({ prediction }: StickyHeaderProps) {
   const isPhilosophical = urgency === "philosophical";
 
   return (
-    <div className={`sticky-header ${isVisible ? "visible" : ""} urgency-${urgency}`}>
-      <div className="sticky-header-content">
+    <div className={`sticky-header fixed top-0 left-0 right-0 z-[100] border-b border-[#ffffff08] backdrop-blur-[10px] bg-[#12121ae6] -translate-y-full transition-[transform,box-shadow] duration-300 ${isVisible ? "visible" : ""} urgency-${urgency}`}>
+      <div className="max-w-[1100px] mx-auto px-6 py-3 flex items-center justify-between gap-4 flex-wrap max-sm:px-3 max-sm:py-2 max-sm:justify-center">
         {isPhilosophical && (
-          <div className="sticky-header-countdown">
-            <span className="sticky-infinity">∞</span>
+          <div className="flex items-start gap-[0.15rem]">
+            <span className="font-mono text-2xl font-extralight text-(--accent)">∞</span>
           </div>
         )}
         {!isPhilosophical && time && (
-          <div className="sticky-header-countdown">
+          <div className="flex items-start gap-[0.15rem] max-sm:gap-[0.1rem]">
             <CountdownDigit value={time.days} label="D" urgency={urgency} compact />
-            <span className="sticky-separator">:</span>
+            <span className="font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]">:</span>
             <CountdownDigit value={time.hours} label="H" urgency={urgency} compact />
-            <span className="sticky-separator">:</span>
+            <span className="font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]">:</span>
             <CountdownDigit value={time.minutes} label="M" urgency={urgency} compact />
-            <span className="sticky-separator">:</span>
+            <span className="font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]">:</span>
             <CountdownDigit value={time.seconds} label="S" urgency={urgency} compact />
-            <span className="sticky-separator">:</span>
+            <span className="font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]">:</span>
             <MillisecondsDisplayCompact />
           </div>
         )}
-        <div className="sticky-header-info">
-          <span className="sticky-header-label">
+        <div className="flex flex-col gap-0.5 max-sm:text-center">
+          <span className="text-[0.7rem] uppercase tracking-[0.1em] text-(--text-muted)">
             {isPhilosophical ? "Beyond time" : isPast ? "Since" : "Until"} {isPhilosophical ? "" : "the singularity"}
           </span>
-          <span className="sticky-header-prediction">
+          <span className="sticky-header-prediction text-[0.85rem] text-(--text-muted)">
             {isPhilosophical ? (
               <strong>{prediction.predictor_name}</strong>
             ) : (

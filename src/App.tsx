@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { Routes, Route, useParams, useNavigate } from "react-router-dom";
 import "./index.css";
 import predictions from "./data/predictions.json";
 import type { Prediction } from "./data/types";
-import { getUrgencyLevel } from "./data/types";
+import { getUrgencyLevel, slugify } from "./data/types";
 import { Countdown } from "./components/Countdown";
 import { PredictionCard } from "./components/PredictionCard";
 import { PredictionPicker } from "./components/PredictionPicker";
@@ -14,24 +15,43 @@ import { StickyHeader } from "./components/StickyHeader";
 const allPredictions = predictions as Prediction[];
 const countdownPredictions = allPredictions.filter((p) => p.has_countdown);
 
+const slugMap = new Map<string, Prediction>();
+for (const p of allPredictions) {
+  slugMap.set(slugify(p), p);
+}
+
 function pickRandom(): Prediction {
   return countdownPredictions[Math.floor(Math.random() * countdownPredictions.length)]!;
 }
 
-export function App() {
-  const [selected, setSelected] = useState<Prediction>(() => pickRandom());
+function PredictionPage() {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+
+  // If on /, pick a random prediction (no URL change)
+  // If on /:slug, resolve from slugMap
+  const [randomPick] = useState(() => pickRandom());
+  const selected = slug ? slugMap.get(slug) : randomPick;
+
+  useEffect(() => {
+    if (slug && !slugMap.has(slug)) {
+      navigate("/", { replace: true });
+    }
+  }, [slug, navigate]);
+
+  if (!selected) return null;
+
   const urgency = getUrgencyLevel(selected.target_date, selected.has_countdown);
 
   const handleSelect = useCallback((id: number) => {
     const found = allPredictions.find((p) => p.id === id);
-    if (found) setSelected(found);
-  }, []);
+    if (found) navigate(`/${slugify(found)}`);
+  }, [navigate]);
 
   const handleRandom = useCallback(() => {
-    setSelected(pickRandom());
-  }, []);
+    navigate(`/${slugify(pickRandom())}`);
+  }, [navigate]);
 
-  // Apply urgency class to body for full-page effects
   useEffect(() => {
     document.body.className = `urgency-${urgency}`;
     return () => {
@@ -42,10 +62,10 @@ export function App() {
   return (
     <>
       <StickyHeader prediction={selected} />
-      <div className="app">
-        <header className="app-header">
-          <h1 className="app-title">The Singularity Countdown</h1>
-          <p className="app-subtitle">Tracking humanity's most confident guesses about its own obsolescence</p>
+      <div className="max-w-[1100px] mx-auto px-6 pt-8 pb-4 max-sm:px-3 max-sm:pt-4 max-sm:pb-2">
+        <header className="text-center mb-6">
+          <h1 className="app-title font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 mb-1 tracking-tight">The Singularity Countdown</h1>
+          <p className="text-(--text-muted) text-[0.95rem] m-0 italic">Tracking humanity's most confident guesses about its own obsolescence</p>
         </header>
 
         <PredictionPicker
@@ -58,9 +78,9 @@ export function App() {
         <Countdown prediction={selected} />
         <PredictionCard prediction={selected} />
 
-        <section className="timeline-section">
-          <h2 className="section-title">Every Prediction, Visualized</h2>
-          <p className="section-subtitle">Click any prediction to update the countdown</p>
+        <section className="mb-16">
+          <h2 className="font-mono text-[1.3rem] font-bold text-center m-0 mb-1 text-(--text)">Every Prediction, Visualized</h2>
+          <p className="text-center text-(--text-muted) text-[0.85rem] m-0 mb-4">Click any prediction to update the countdown</p>
           <Timeline predictions={allPredictions} selectedId={selected.id} onSelect={handleSelect} />
         </section>
 
@@ -68,6 +88,15 @@ export function App() {
         <Footer />
       </div>
     </>
+  );
+}
+
+export function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<PredictionPage />} />
+      <Route path="/:slug" element={<PredictionPage />} />
+    </Routes>
   );
 }
 

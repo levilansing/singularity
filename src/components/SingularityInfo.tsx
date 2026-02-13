@@ -1,8 +1,8 @@
 export function SingularityInfo() {
   return (
-    <section className="singularity-info">
-      <h2 className="section-title">What Even Is the Singularity?</h2>
-      <div className="singularity-info-content">
+    <section className="mb-16">
+      <h2 className="font-mono text-[1.3rem] font-bold text-center m-0 mb-1 text-(--text)">What Even Is the Singularity?</h2>
+      <div className="singularity-info-content bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6">
         <p>
           The <strong>technological singularity</strong> is the hypothetical future point where technological
           growth becomes uncontrollable and irreversible, resulting in unforeseeable consequences for human
