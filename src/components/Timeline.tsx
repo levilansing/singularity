@@ -26,6 +26,8 @@ const TYPE_COLORS: Record<string, string> = {
   "Human-level AI": "#06b6d4",
 };
 
+const ALL_TYPES = Object.keys(TYPE_COLORS);
+
 function getTypeColor(type: string): string {
   return TYPE_COLORS[type] ?? "#6b7280";
 }
@@ -75,9 +77,22 @@ function clampViewport(
   return { xMin, xMax, yMin, yMax };
 }
 
+/** Normalize a prediction_type to its canonical legend key */
+function canonicalType(type: string): string {
+  // Map variants like "AGI (weak)", "AGI (strong)", "HLMI" to their legend keys
+  if (type.startsWith("AGI")) return "AGI";
+  if (type === "HLMI") return "Human-level AI";
+  return type;
+}
+
+const TOOLTIP_WIDTH = 280;
+const TOOLTIP_HEIGHT_ESTIMATE = 120;
+
 export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<{ prediction: Prediction; x: number; y: number } | null>(null);
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null); // null = all active
 
   // Only include predictions with at least a best year for x-axis
   const timelinePredictions = useMemo(
@@ -164,6 +179,16 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     return offsets;
   }, [timelinePredictions]);
 
+  // Sort predictions: farthest predicted date first (rendered first = behind),
+  // nearest predicted date last (rendered last = on top, easier to hover)
+  const sortedPredictions = useMemo(() => {
+    return [...timelinePredictions].sort((a, b) => {
+      const aYear = a.predicted_year_best ?? 9999;
+      const bYear = b.predicted_year_best ?? 9999;
+      return bYear - aYear; // descending = farthest first
+    });
+  }, [timelinePredictions]);
+
   const currentYear = new Date().getFullYear() + new Date().getMonth() / 12;
 
   const xTicks = useMemo(() => generateTicks(vp.xMin, vp.xMax), [vp.xMin, vp.xMax]);
@@ -173,16 +198,54 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     const container = containerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
-    setTooltip({
-      prediction,
-      x: event.clientX - rect.left + 10,
-      y: event.clientY - rect.top - 10,
-    });
+    let x = event.clientX - rect.left + 10;
+    let y = event.clientY - rect.top - 10;
+
+    // Clamp tooltip to stay within container
+    if (x + TOOLTIP_WIDTH > rect.width) {
+      x = event.clientX - rect.left - TOOLTIP_WIDTH - 10;
+    }
+    if (x < 0) x = 4;
+    if (y + TOOLTIP_HEIGHT_ESTIMATE > rect.height) {
+      y = event.clientY - rect.top - TOOLTIP_HEIGHT_ESTIMATE - 10;
+    }
+    if (y < 0) y = 4;
+
+    setHoveredId(prediction.id);
+    setTooltip({ prediction, x, y });
   }, []);
 
   const handleMouseLeave = useCallback(() => {
+    setHoveredId(null);
     setTooltip(null);
   }, []);
+
+  const toggleType = useCallback((type: string) => {
+    setActiveTypes((prev) => {
+      if (prev === null) {
+        // First click: select only this type
+        return new Set([type]);
+      }
+      if (prev.size === 1 && prev.has(type)) {
+        // Clicking the only active type: reset to all
+        return null;
+      }
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      // If all are now active, reset to null
+      if (next.size === ALL_TYPES.length) return null;
+      return next;
+    });
+  }, []);
+
+  const isTypeActive = useCallback((type: string): boolean => {
+    if (activeTypes === null) return true;
+    return activeTypes.has(canonicalType(type));
+  }, [activeTypes]);
 
   const [svgWidth, setSvgWidth] = useState(800);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -232,7 +295,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       const newYRange = yRange * (1 + delta);
 
       // Don't zoom in too far or out too far
-      if (newXRange < 5 || newYRange < 5 || newXRange > 500 || newYRange > 500) return;
+      if (newXRange < 2 || newYRange < 2 || newXRange > 500 || newYRange > 500) return;
 
       setViewport(clampViewport({
         xMin: yearAtCursorX - fx * newXRange,
@@ -293,14 +356,28 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   }, [dataBounds]);
 
   return (
-    <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-4 overflow-x-auto" ref={containerRef}>
-      <div className="flex flex-wrap gap-3 justify-center mb-3 text-xs text-(--text-muted)">
-        {Object.entries(TYPE_COLORS).map(([type, color]) => (
-          <span key={type} className="flex items-center gap-1">
-            <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-            {type}
-          </span>
-        ))}
+    <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-4 overflow-hidden" ref={containerRef}>
+      {/* Legend — clickable to filter */}
+      <div className="flex flex-wrap gap-3 justify-center mb-3 text-xs">
+        {Object.entries(TYPE_COLORS).map(([type, color]) => {
+          const isActive = activeTypes === null || activeTypes.has(type);
+          return (
+            <button
+              key={type}
+              className="flex items-center gap-1 cursor-pointer transition-opacity duration-150"
+              style={{ opacity: isActive ? 1 : 0.3 }}
+              onClick={() => toggleType(type)}
+            >
+              <span
+                className="size-2 rounded-full shrink-0 transition-colors duration-150"
+                style={{ backgroundColor: isActive ? color : "#555568" }}
+              />
+              <span style={{ color: isActive ? "var(--text-muted)" : "var(--text-dim)" }}>
+                {type}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex items-stretch">
@@ -407,63 +484,117 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
             );
           })()}
 
-          {/* Prediction points */}
+          {/* Layer 1: Range lines (behind everything) */}
           <g clipPath="url(#chart-clip)">
-            {timelinePredictions.map((p) => {
+            {sortedPredictions.map((p) => {
+              const predictionFY = dateToFractionalYear(p.prediction_date);
+              if (isNaN(predictionFY)) return null;
+              if (!p.predicted_date_low || !p.predicted_date_high) return null;
+              const cyBase = yScale(predictionFY);
+              const cy = cyBase + (overlapOffsets.get(p.id) ?? 0);
+              const active = isTypeActive(p.prediction_type);
+              const color = active ? getTypeColor(p.prediction_type) : "#333340";
+              const isSelected = p.id === selectedId;
+              const opacity = active ? (isSelected ? 0.5 : 0.3) : 0.1;
+
+              return (
+                <line
+                  key={`range-${p.id}`}
+                  x1={xScale(dateToFractionalYear(p.predicted_date_low), svgWidth)}
+                  y1={cy}
+                  x2={xScale(dateToFractionalYear(p.predicted_date_high), svgWidth)}
+                  y2={cy}
+                  stroke={color}
+                  strokeWidth={isSelected ? 3 : 2}
+                  opacity={opacity}
+                  strokeLinecap="round"
+                />
+              );
+            })}
+          </g>
+
+          {/* Layer 2: Dots (sorted so nearest-date renders last = on top) */}
+          <g clipPath="url(#chart-clip)">
+            {sortedPredictions.map((p) => {
               const predictionFY = dateToFractionalYear(p.prediction_date);
               if (isNaN(predictionFY)) return null;
               const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best!;
               const cx = xScale(bestFY, svgWidth);
               const cyBase = yScale(predictionFY);
               const cy = cyBase + (overlapOffsets.get(p.id) ?? 0);
-              const color = getTypeColor(p.prediction_type);
+              const active = isTypeActive(p.prediction_type);
+              const color = active ? getTypeColor(p.prediction_type) : "#333340";
               const isSelected = p.id === selectedId;
-              const opacity = isSelected ? 1 : 0.7;
+              const isHovered = p.id === hoveredId;
+
+              if (!active) {
+                return (
+                  <circle
+                    key={`dot-${p.id}`}
+                    cx={cx}
+                    cy={cy}
+                    r={POINT_RADIUS}
+                    fill={color}
+                    opacity={0.15}
+                  />
+                );
+              }
 
               return (
-                <g
-                  key={p.id}
+                <circle
+                  key={`dot-${p.id}`}
+                  cx={cx}
+                  cy={cy}
+                  r={isSelected ? POINT_RADIUS + 2 : POINT_RADIUS}
+                  fill={color}
+                  opacity={isHovered ? 1 : (isSelected ? 1 : 0.7)}
+                  stroke={isHovered || isSelected ? "#fff" : "none"}
+                  strokeWidth={isHovered ? 1.5 : (isSelected ? 2 : 0)}
+                />
+              );
+            })}
+          </g>
+
+          {/* Layer 3: Invisible hit areas — sorted by SVG y ascending so
+              lower-on-screen items render last and are hoverable.
+              Use smaller hit radius for stacked items so they don't overlap. */}
+          <g clipPath="url(#chart-clip)">
+            {sortedPredictions
+              .filter((p) => {
+                if (isNaN(dateToFractionalYear(p.prediction_date))) return false;
+                return isTypeActive(p.prediction_type);
+              })
+              .map((p) => {
+                const predictionFY = dateToFractionalYear(p.prediction_date);
+                const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best!;
+                const cx = xScale(bestFY, svgWidth);
+                const cyBase = yScale(predictionFY);
+                const cy = cyBase + (overlapOffsets.get(p.id) ?? 0);
+                const isStacked = overlapOffsets.has(p.id);
+                return { p, cx, cy, isStacked };
+              })
+              // Sort by cy ascending: top-of-screen first, bottom-of-screen last.
+              // In SVG, later elements are on top, so bottom items will be hoverable.
+              .sort((a, b) => a.cy - b.cy)
+              .map(({ p, cx, cy, isStacked }) => (
+                <circle
+                  key={`hit-${p.id}`}
                   className="timeline-row"
+                  cx={cx}
+                  cy={cy}
+                  r={isStacked ? POINT_RADIUS + 2 : 12}
+                  fill="transparent"
                   style={{ cursor: "pointer" }}
                   onClick={() => onSelect(p.id)}
                   onMouseEnter={(e) => handleMouseEnter(p, e)}
                   onMouseLeave={handleMouseLeave}
-                >
-                  {/* Range bar (horizontal) */}
-                  {p.predicted_date_low && p.predicted_date_high && (
-                    <line
-                      x1={xScale(dateToFractionalYear(p.predicted_date_low), svgWidth)}
-                      y1={cy}
-                      x2={xScale(dateToFractionalYear(p.predicted_date_high), svgWidth)}
-                      y2={cy}
-                      stroke={color}
-                      strokeWidth={isSelected ? 3 : 2}
-                      opacity={opacity * 0.4}
-                      strokeLinecap="round"
-                    />
-                  )}
-
-                  {/* Best estimate point */}
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={isSelected ? POINT_RADIUS + 2 : POINT_RADIUS}
-                    fill={color}
-                    opacity={opacity}
-                    stroke={isSelected ? "#fff" : "none"}
-                    strokeWidth={isSelected ? 2 : 0}
-                  />
-
-                  {/* Invisible hit area */}
-                  <circle cx={cx} cy={cy} r={12} fill="transparent" />
-                </g>
-              );
-            })}
+                />
+              ))}
           </g>
         </svg>
       </div>
 
-      <div className="text-center text-[0.65rem] text-(--text-dim) opacity-50 mt-1.5 select-none">Scroll to zoom · Drag to pan · Double-click to reset</div>
+      <div className="text-center text-[0.65rem] text-(--text-dim) opacity-50 mt-1.5 select-none">Scroll to zoom · Drag to pan · Double-click to reset · Click legend to filter</div>
 
       {tooltip && <TimelineTooltip prediction={tooltip.prediction} x={tooltip.x} y={tooltip.y} />}
     </div>

@@ -5455,5 +5455,36 @@
     "target_date": "2035-07-01T00:00:00Z",
     "has_countdown": true,
     "headshot_local": null
+  },
+  {
+    "id": 180,
+    "predictor_name": "Cam Pedersen",
+    "predictor_type": "Individual",
+    "prediction_date": "2026-02-10",
+    "predicted_date_low": "2034-07-18",
+    "predicted_date_high": "2034-07-18",
+    "predicted_date_best": "2034-07-18",
+    "predicted_year_low": 2034,
+    "predicted_year_high": 2034,
+    "predicted_year_best": 2034,
+    "prediction_type": "Singularity",
+    "confidence_level": "Speculative (self-described as 'unhinged')",
+    "confidence_label": "Mathematically Unhinged",
+    "confidence_type": "low",
+    "concept_keys": [
+      "event-horizon",
+      "accelerating-change",
+      "economic-singularity"
+    ],
+    "criteria_definition": "Phase transition when rate of AI emergent behavior discoveries exceeds human processing capacity (tst)",
+    "source_name": "Personal blog analysis",
+    "source_url": "https://campedersen.com/singularity",
+    "headshot_url": "",
+    "headline": "Engineer Calculates Exact Singularity Date Using Hyperbolic Curve-Fitting: Tuesday July 18 2034",
+    "tldr_summary": "Engineer and self-described optimist Cam Pedersen fitted hyperbolic curves to five AI progress metrics and discovered something unsettling: only one is actually going hyperbolic, and it's not machine capability. The singularity date of Tuesday July 18 2034 comes from tracking arXiv papers about AI emergence—meaning the metric accelerating toward infinity is human attention to AI surprises, not AI performance itself. The machines are improving linearly; we're the ones losing our minds exponentially. Pedersen defines his 'singularity' not as superintelligence but as tst: the moment when AI surprises arrive faster than humans can process them. Plot twist: while the math points to 2034, he argues the social consequences (labor displacement, institutional failure, epistemic collapse) are already happening in 2026. The real singularity is when you realize the singularity is a human perceptual crisis, not a robot apocalypse.",
+    "graphic_url": "",
+    "target_date": "2034-07-18T00:00:00Z",
+    "has_countdown": true,
+    "headshot_local": null
   }
 ]

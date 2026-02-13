@@ -28,7 +28,7 @@
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    transition: background 0.8s ease;
+    transition: background-color 0.8s ease;
   }
 
   a {
@@ -54,7 +54,7 @@ body.urgency-near {
   background: linear-gradient(135deg, #1a1505 0%, #0a0a0f 50%, #1a1005 100%);
 }
 body.urgency-far {
-  background: var(--bg);
+  background: linear-gradient(135deg, #0a0a0f 0%, #0a0a0f 50%, #0a0a0f 100%);
 }
 body.urgency-philosophical {
   background: linear-gradient(135deg, #05051a 0%, #0a0a0f 50%, #0a0515 100%);
@@ -124,7 +124,8 @@ body.urgency-philosophical {
 /* ── Urgency: Far ── */
 .countdown-container.urgency-far {
   background: transparent;
-  border: none;
+  border-color: #8b5cf600;
+  /* border: none; */
   box-shadow: none;
 }
 .urgency-far .countdown-digit-value {

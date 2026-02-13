@@ -78,7 +78,7 @@ function PredictionPage() {
       <StickyHeader prediction={selected} />
       <div className="max-w-[1100px] mx-auto px-6 pt-8 pb-4 max-sm:px-3 max-sm:pt-4 max-sm:pb-2">
         <header className="text-center mb-6">
-          <h1 className="app-title font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 mb-1 tracking-tight">The Singularity Countdown</h1>
+          <h1 className="app-title font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 mb-1 tracking-tight">The Singularity is Coming</h1>
           <p className="text-(--text-muted) text-[0.95rem] m-0 italic">Tracking humanity's most confident guesses about its own obsolescence</p>
         </header>
 

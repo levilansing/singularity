@@ -379,24 +379,110 @@ function TypeCarousel() {
 }
 
 /* ────────────────────────────────────────────
-   Timeline Drift visualization
+   Prediction Drift scatter plot
    ──────────────────────────────────────────── */
 
-function TimelineDrift() {
-  const driftData = [
-    { year: 2016, median: 2061, label: "Grace survey" },
-    { year: 2022, median: 2060, label: "Grace survey (repeat)" },
-    { year: 2023, median: 2047, label: "Grace survey (post-ChatGPT)" },
-    { year: 2025, median: 2032, label: "Metaculus aggregate" },
-  ];
+const TYPE_COLORS: Record<string, string> = {
+  "AGI": "#8b5cf6",
+  "AGI (weak)": "#8b5cf6",
+  "AGI (strong)": "#8b5cf6",
+  "Singularity": "#f59e0b",
+  "Superintelligence": "#ef4444",
+  "Intelligence Explosion": "#10b981",
+  "Transformative AI": "#06b6d4",
+  "HLMI": "#a855f7",
+  "Human-level AI": "#a855f7",
+};
 
-  const minYear = 2014;
-  const maxYear = 2026;
-  const minPredicted = 2025;
-  const maxPredicted = 2065;
+const TYPE_LEGEND_ORDER = [
+  { label: "AGI", color: "#8b5cf6" },
+  { label: "Singularity", color: "#f59e0b" },
+  { label: "Superintelligence", color: "#ef4444" },
+  { label: "Intel. Explosion", color: "#10b981" },
+  { label: "Transformative AI", color: "#06b6d4" },
+  { label: "HLMI", color: "#a855f7" },
+];
 
-  const xScale = (y: number) => ((y - minYear) / (maxYear - minYear)) * 100;
-  const yScale = (y: number) => 100 - ((y - minPredicted) / (maxPredicted - minPredicted)) * 100;
+interface ScatterPoint {
+  madeYear: number;
+  predictedYear: number;
+  color: string;
+  name: string;
+  type: string;
+}
+
+function computeScatterData(): { points: ScatterPoint[]; medians: { year: number; median: number }[] } {
+  const points: ScatterPoint[] = [];
+  const byMadeYear: Record<number, number[]> = {};
+
+  for (const p of allPredictions) {
+    if (!p.predicted_year_best || !p.prediction_date) continue;
+    const madeYear = parseInt(p.prediction_date.slice(0, 4), 10);
+    // Focus on 1993+ where we have meaningful data
+    if (madeYear < 1993) continue;
+    // Clamp to chart range
+    const predictedYear = Math.max(2025, Math.min(p.predicted_year_best, 2080));
+
+    points.push({
+      madeYear,
+      predictedYear,
+      color: TYPE_COLORS[p.prediction_type] ?? "#888898",
+      name: p.predictor_name,
+      type: p.prediction_type,
+    });
+
+    if (!byMadeYear[madeYear]) byMadeYear[madeYear] = [];
+    byMadeYear[madeYear].push(predictedYear);
+  }
+
+  // Compute rolling medians: group into buckets for smoother line
+  // Buckets: ...-2019, 2020-2022, 2023, 2024, 2025, 2026
+  const buckets: [number, number[]][] = [];
+  const pre2020: number[] = [];
+  const y2020_22: number[] = [];
+
+  for (const [y, vals] of Object.entries(byMadeYear)) {
+    const year = Number(y);
+    if (year < 2020) pre2020.push(...vals);
+    else if (year <= 2022) y2020_22.push(...vals);
+  }
+
+  if (pre2020.length) buckets.push([2008, pre2020]); // visual center for pre-2020
+  if (y2020_22.length) buckets.push([2021, y2020_22]);
+  for (const yr of [2023, 2024, 2025, 2026]) {
+    if (byMadeYear[yr]?.length) buckets.push([yr, byMadeYear[yr]]);
+  }
+
+  const medians = buckets.map(([year, vals]) => {
+    const sorted = [...vals].sort((a, b) => a - b);
+    return { year, median: sorted[Math.floor(sorted.length / 2)]! };
+  });
+
+  return { points, medians };
+}
+
+function PredictionDrift() {
+  const { points, medians } = useMemo(computeScatterData, []);
+
+  // Chart bounds
+  const xMin = 1993;
+  const xMax = 2027;
+  const yMin = 2025;
+  const yMax = 2080;
+
+  // Chart area within SVG
+  const padL = 14;
+  const padR = 2;
+  const padT = 3;
+  const padB = 10;
+  const w = 100;
+  const h = 70;
+
+  const xScale = (v: number) => padL + ((v - xMin) / (xMax - xMin)) * (w - padL - padR);
+  const yScale = (v: number) => padT + ((yMax - Math.max(yMin, Math.min(yMax, v))) / (yMax - yMin)) * (h - padT - padB);
+
+  const gridYears = [2030, 2040, 2050, 2060, 2070, 2080];
+  const gridXYears = [1995, 2000, 2005, 2010, 2015, 2020, 2025];
 
   return (
     <div className="mt-8">
@@ -404,80 +490,134 @@ function TimelineDrift() {
         The Predictions Are Accelerating
       </h3>
       <p className="text-center text-[0.78rem] text-(--text-dim) m-0 mb-4 italic">
-        Median expert forecasts for human-level AI, by survey year
+        Every prediction in our dataset: when it was made vs. when they said it would happen
       </p>
 
       <div className="bg-(--bg-card) border border-[#ffffff08] rounded-xl p-5 max-sm:p-3">
-        <svg viewBox="-8 -5 116 75" className="w-full" style={{ maxHeight: "200px" }}>
-          {/* grid lines */}
-          {[2030, 2040, 2050, 2060].map((y) => (
-            <g key={y}>
+        {/* Legend */}
+        <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mb-3">
+          {TYPE_LEGEND_ORDER.map((t) => (
+            <span key={t.label} className="flex items-center gap-1 text-[0.6rem] font-mono" style={{ color: t.color }}>
+              <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: t.color }} />
+              {t.label}
+            </span>
+          ))}
+          <span className="flex items-center gap-1 text-[0.6rem] font-mono text-(--text-dim)">
+            <span className="inline-block w-3 h-0.5 rounded" style={{ background: "#8b5cf6" }} />
+            median
+          </span>
+        </div>
+
+        <svg
+          viewBox={`0 0 ${w} ${h}`}
+          className="w-full"
+          style={{ maxHeight: "340px" }}
+        >
+          {/* Horizontal grid lines + Y-axis labels */}
+          {gridYears.map((y, i , arr) => (
+            <g key={`gy-${y}`}>
               <line
-                x1="0" y1={yScale(y)} x2="100" y2={yScale(y)}
-                stroke="#ffffff08" strokeWidth="0.3"
+                x1={padL} y1={yScale(y)} x2={w - padR} y2={yScale(y)}
+                stroke="#ffffff06" strokeWidth="0.15"
               />
-              <text x="-2" y={yScale(y) + 1.2} fill="#555568" fontSize="3" textAnchor="end" fontFamily="monospace">
-                {y}
+              <text
+                x={padL - 1} y={yScale(y) + 0.8}
+                fill="#555568" fontSize="2.2" textAnchor="end" fontFamily="monospace"
+              >
+                {i === arr.length - 1 ? `${y}+` : y}
               </text>
             </g>
           ))}
 
-          {/* connecting line */}
-          <polyline
-            points={driftData.map((d) => `${xScale(d.year)},${yScale(d.median)}`).join(" ")}
-            fill="none"
-            stroke="#8b5cf6"
-            strokeWidth="0.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* dots + labels */}
-          {driftData.map((d, i) => (
-            <g key={i}>
-              <circle cx={xScale(d.year)} cy={yScale(d.median)} r="1.8" fill="#8b5cf6" />
+          {/* Vertical grid lines + X-axis labels */}
+          {gridXYears.map((x) => (
+            <g key={`gx-${x}`}>
+              <line
+                x1={xScale(x)} y1={padT} x2={xScale(x)} y2={h - padB}
+                stroke="#ffffff04" strokeWidth="0.15"
+              />
               <text
-                x={xScale(d.year)}
-                y={yScale(d.median) - 4}
-                fill="#e0e0e8"
-                fontSize="3"
-                textAnchor="middle"
-                fontFamily="monospace"
-                fontWeight="bold"
+                x={xScale(x)} y={h - padB + 4}
+                fill="#555568" fontSize="2" textAnchor="middle" fontFamily="monospace"
               >
-                {d.median}
-              </text>
-              <text
-                x={xScale(d.year)}
-                y={yScale(d.median) + 5.5}
-                fill="#888898"
-                fontSize="2.2"
-                textAnchor="middle"
-                fontFamily="monospace"
-              >
-                {d.label}
-              </text>
-              <text
-                x={xScale(d.year)}
-                y={65}
-                fill="#555568"
-                fontSize="2.5"
-                textAnchor="middle"
-                fontFamily="monospace"
-              >
-                {d.year}
+                {x}
               </text>
             </g>
           ))}
 
-          {/* arrow annotation */}
-          <text x="75" y="20" fill="#ef444490" fontSize="2.5" fontFamily="monospace" fontStyle="italic">
-            13 years closer
+          {/* Axis labels */}
+          <text
+            x={w / 2} y={h - 0.5}
+            fill="#555568" fontSize="1.8" textAnchor="middle" fontFamily="monospace"
+          >
+            year prediction was made
           </text>
-          <text x="75" y="23.5" fill="#ef444490" fontSize="2.5" fontFamily="monospace" fontStyle="italic">
-            in one survey cycle
+          <text
+            x={2} y={h / 2}
+            fill="#555568" fontSize="1.8" textAnchor="middle" fontFamily="monospace"
+            transform={`rotate(-90, 2, ${h / 2})`}
+          >
+            predicted year
+          </text>
+
+          {/* Drop shadow filters for median line */}
+          <defs>
+            <filter id="median-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="1.2" floodColor="#000000" floodOpacity="0.8" />
+              <feDropShadow dx="0" dy="0" stdDeviation="0.4" floodColor="#8b5cf6" floodOpacity="0.5" />
+            </filter>
+          </defs>
+
+          {/* Scatter dots */}
+          {points.map((pt, i) => (
+            <circle
+              key={i}
+              cx={xScale(pt.madeYear)}
+              cy={yScale(pt.predictedYear)}
+              r="0.7"
+              fill={pt.color}
+              opacity={0.25}
+            />
+          ))}
+
+          {/* Median trend line with drop shadows */}
+          {medians.length > 1 && (
+            <polyline
+              points={medians.map((d) => `${xScale(d.year)},${yScale(d.median)}`).join(" ")}
+              fill="none"
+              stroke="#8b5cf6"
+              strokeWidth="0.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              filter="url(#median-glow)"
+            />
+          )}
+
+          {/* Median dots */}
+          {medians.map((d, i) => (
+            <circle
+              key={`med-${i}`}
+              cx={xScale(d.year)}
+              cy={yScale(d.median)}
+              r="0.9"
+              fill="#8b5cf6"
+              filter="url(#median-glow)"
+            />
+          ))}
+
+          {/* "ChatGPT launches" annotation */}
+          <line
+            x1={xScale(2022.9)} y1={padT - 2.25} x2={xScale(2022.9)} y2={h - padB}
+            stroke="#ffffff15" strokeWidth="0.2" strokeDasharray="0.8 0.5"
+          />
+          <text
+            x={xScale(2022.9) + 0.5} y={padT - 1}
+            fill="#ffffff30" fontSize="1.6" fontFamily="monospace"
+          >
+            ChatGPT Launches
           </text>
         </svg>
+
       </div>
     </div>
   );
@@ -574,7 +714,7 @@ export function SingularityInfo() {
       </div>
 
       <TypeCarousel />
-      <TimelineDrift />
+      <PredictionDrift />
       <ThreeCamps />
 
       {/* Closing section */}
