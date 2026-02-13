@@ -3,11 +3,17 @@ export interface Prediction {
   predictor_name: string;
   predictor_type: string;
   prediction_date: string;
+  predicted_date_low: string | null;
+  predicted_date_high: string | null;
+  predicted_date_best: string | null;
   predicted_year_low: number | null;
   predicted_year_high: number | null;
   predicted_year_best: number | null;
   prediction_type: string;
   confidence_level: string;
+  confidence_label: string;
+  confidence_type: string;
+  concept_keys: string[];
   criteria_definition: string;
   source_name: string;
   source_url: string;
@@ -21,10 +27,22 @@ export interface Prediction {
 }
 
 export function slugify(prediction: Prediction): string {
-  return prediction.predictor_name
+  const base = prediction.headline
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+  return `${prediction.id}/${base}`;
+}
+
+/** Convert a date string (YYYY-MM-DD or YYYY) to a fractional year for plotting */
+export function dateToFractionalYear(dateStr: string): number {
+  const year = parseInt(dateStr.slice(0, 4), 10);
+  if (dateStr.length <= 4) return year;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return year;
+  const start = new Date(year, 0, 1).getTime();
+  const end = new Date(year + 1, 0, 1).getTime();
+  return year + (d.getTime() - start) / (end - start);
 }
 
 export type UrgencyLevel = "past" | "imminent" | "near" | "far" | "philosophical";

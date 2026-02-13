@@ -1,6 +1,14 @@
 import type { Prediction } from "../data/types";
 import { PredictorAvatar } from "./PredictorAvatar";
 
+const CONFIDENCE_COLORS: Record<string, string> = {
+  low: "bg-[#ef444420] text-[#f87171]",
+  medium: "bg-[#f9731620] text-[#fb923c]",
+  high: "bg-[#10b98120] text-[#34d399]",
+  certain: "bg-[#8b5cf620] text-[#c4b5fd]",
+  none: "bg-[#6b728020] text-[#9ca3af]",
+};
+
 interface PredictionCardProps {
   prediction: Prediction;
 }
@@ -20,11 +28,13 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
           <div className="flex flex-wrap items-center gap-1.5 text-[0.8rem] text-(--text-muted)">
             <span className="bg-[#8b5cf620] text-[#a78bfa] px-2 py-0.5 rounded-full text-[0.7rem] font-medium">{prediction.prediction_type}</span>
             <span className="text-(--text-dim)">·</span>
-            <span>Predicted in {prediction.prediction_date}</span>
-            {prediction.confidence_level && (
+            <span>Predicted {prediction.prediction_date.match(/^\d{4}-\d{2}-\d{2}$/) ? 'on' : 'in'} {prediction.prediction_date}</span>
+            {prediction.confidence_label && (
               <>
                 <span className="text-(--text-dim)">·</span>
-                <span>{prediction.confidence_level}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[0.7rem] font-medium ${CONFIDENCE_COLORS[prediction.confidence_type] ?? CONFIDENCE_COLORS.none}`}>
+                  {prediction.confidence_label}
+                </span>
               </>
             )}
           </div>

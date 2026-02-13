@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import type { Prediction } from "../data/types";
+import { dateToFractionalYear } from "../data/types";
 import { TimelineTooltip } from "./TimelineTooltip";
 
 interface TimelineProps {
@@ -89,17 +90,18 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     let xMin = Infinity, xMax = -Infinity;
     let yMin = Infinity, yMax = -Infinity;
     for (const p of timelinePredictions) {
-      const years = [p.predicted_year_low, p.predicted_year_best, p.predicted_year_high].filter(
-        (y): y is number => y !== null
-      );
-      for (const y of years) {
-        if (y < xMin) xMin = y;
-        if (y > xMax) xMax = y;
+      // X-axis: use fractional years from dates for precision
+      const dates = [p.predicted_date_low, p.predicted_date_best, p.predicted_date_high].filter(Boolean) as string[];
+      for (const d of dates) {
+        const fy = dateToFractionalYear(d);
+        if (fy < xMin) xMin = fy;
+        if (fy > xMax) xMax = fy;
       }
-      const predYear = parseInt(p.prediction_date, 10);
-      if (!isNaN(predYear)) {
-        if (predYear < yMin) yMin = predYear;
-        if (predYear > yMax) yMax = predYear;
+      // Y-axis: fractional year when prediction was made
+      const predFY = dateToFractionalYear(p.prediction_date);
+      if (!isNaN(predFY)) {
+        if (predFY < yMin) yMin = predFY;
+        if (predFY > yMax) yMax = predFY;
       }
     }
     return {
@@ -141,9 +143,11 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   const overlapOffsets = useMemo(() => {
     const groups = new Map<string, number[]>();
     for (const p of timelinePredictions) {
-      const predYear = parseInt(p.prediction_date, 10);
-      if (isNaN(predYear) || p.predicted_year_best === null) continue;
-      const key = `${p.predicted_year_best}:${predYear}`;
+      if (p.predicted_year_best === null) continue;
+      // Round to nearest quarter-year for overlap grouping
+      const predFY = dateToFractionalYear(p.prediction_date);
+      const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best;
+      const key = `${Math.round(bestFY * 4) / 4}:${Math.round(predFY * 4) / 4}`;
       const group = groups.get(key);
       if (group) group.push(p.id);
       else groups.set(key, [p.id]);
@@ -406,10 +410,11 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           {/* Prediction points */}
           <g clipPath="url(#chart-clip)">
             {timelinePredictions.map((p) => {
-              const predictionYear = parseInt(p.prediction_date, 10);
-              if (isNaN(predictionYear)) return null;
-              const cx = xScale(p.predicted_year_best!, svgWidth);
-              const cyBase = yScale(predictionYear);
+              const predictionFY = dateToFractionalYear(p.prediction_date);
+              if (isNaN(predictionFY)) return null;
+              const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best!;
+              const cx = xScale(bestFY, svgWidth);
+              const cyBase = yScale(predictionFY);
               const cy = cyBase + (overlapOffsets.get(p.id) ?? 0);
               const color = getTypeColor(p.prediction_type);
               const isSelected = p.id === selectedId;
@@ -425,11 +430,11 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
                   onMouseLeave={handleMouseLeave}
                 >
                   {/* Range bar (horizontal) */}
-                  {p.predicted_year_low !== null && p.predicted_year_high !== null && (
+                  {p.predicted_date_low && p.predicted_date_high && (
                     <line
-                      x1={xScale(p.predicted_year_low, svgWidth)}
+                      x1={xScale(dateToFractionalYear(p.predicted_date_low), svgWidth)}
                       y1={cy}
-                      x2={xScale(p.predicted_year_high, svgWidth)}
+                      x2={xScale(dateToFractionalYear(p.predicted_date_high), svgWidth)}
                       y2={cy}
                       stroke={color}
                       strokeWidth={isSelected ? 3 : 2}

@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { Routes, Route, useParams, useNavigate } from "react-router-dom";
+import { useState, useCallback, useEffect } from "react";
+import { Routes, Route, useParams, useNavigate, Navigate } from "react-router-dom";
 import "./index.css";
 import predictions from "./data/predictions.json";
 import type { Prediction } from "./data/types";
@@ -11,13 +11,14 @@ import { Timeline } from "./components/Timeline";
 import { SingularityInfo } from "./components/SingularityInfo";
 import { Footer } from "./components/Footer";
 import { StickyHeader } from "./components/StickyHeader";
+import { ConceptBlurbs } from "./components/ConceptBlurbs";
 
 const allPredictions = predictions as Prediction[];
 const countdownPredictions = allPredictions.filter((p) => p.has_countdown);
 
-const slugMap = new Map<string, Prediction>();
+const idMap = new Map<number, Prediction>();
 for (const p of allPredictions) {
-  slugMap.set(slugify(p), p);
+  idMap.set(p.id, p);
 }
 
 function pickRandom(): Prediction {
@@ -25,23 +26,34 @@ function pickRandom(): Prediction {
 }
 
 function PredictionPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { id, "*": rest } = useParams();
   const navigate = useNavigate();
 
-  // If on /, pick a random prediction (no URL change)
-  // If on /:slug, resolve from slugMap
-  const [randomPick] = useState(() => pickRandom());
-  const selected = slug ? slugMap.get(slug) : randomPick;
+  const numericId = id ? parseInt(id, 10) : NaN;
+  const prediction = !isNaN(numericId) ? idMap.get(numericId) : undefined;
 
+  // If id doesn't match any prediction, redirect home
   useEffect(() => {
-    if (slug && !slugMap.has(slug)) {
+    if (id && !prediction) {
       navigate("/", { replace: true });
     }
-  }, [slug, navigate]);
+  }, [id, prediction, navigate]);
 
-  if (!selected) return null;
+  // If slug is missing or wrong, redirect to the canonical URL
+  useEffect(() => {
+    if (prediction) {
+      const canonical = slugify(prediction);
+      const current = id && rest ? `${id}/${rest}` : id;
+      if (current !== canonical) {
+        navigate(`/${canonical}`, { replace: true });
+      }
+    }
+  }, [prediction, id, rest, navigate]);
 
-  const urgency = getUrgencyLevel(selected.target_date, selected.has_countdown);
+  const [randomPick] = useState(() => pickRandom());
+  const selected = prediction ?? (id ? undefined : randomPick);
+
+  const urgency = selected ? getUrgencyLevel(selected.target_date, selected.has_countdown) : "far";
 
   const handleSelect = useCallback((id: number) => {
     const found = allPredictions.find((p) => p.id === id);
@@ -58,6 +70,8 @@ function PredictionPage() {
       document.body.className = "";
     };
   }, [urgency]);
+
+  if (!selected) return null;
 
   return (
     <>
@@ -77,6 +91,7 @@ function PredictionPage() {
 
         <Countdown prediction={selected} />
         <PredictionCard prediction={selected} />
+        <ConceptBlurbs prediction={selected} />
 
         <section className="mb-16">
           <h2 className="font-mono text-[1.3rem] font-bold text-center m-0 mb-1 text-(--text)">Every Prediction, Visualized</h2>
@@ -95,7 +110,8 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<PredictionPage />} />
-      <Route path="/:slug" element={<PredictionPage />} />
+      <Route path="/:id/*" element={<PredictionPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

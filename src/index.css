@@ -101,7 +101,7 @@ body.urgency-philosophical {
 .urgency-imminent .countdown-digit-value {
   color: #ff6644;
   text-shadow: 0 0 15px #ff440050;
-  animation: imminent-shake 0.3s ease-in-out infinite;
+  animation: imminent-pulse 2s ease-in-out infinite;
 }
 .urgency-imminent .countdown-separator {
   color: #ff664480;
@@ -236,6 +236,17 @@ body.urgency-philosophical {
 }
 .singularity-info-content strong {
   color: var(--text);
+}
+.singularity-info-content code {
+  font-size: 0.8em;
+}
+
+/* ── Article body text in type cards ── */
+.singularity-article-body {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  margin: 0;
 }
 
 /* ── Prediction year strong ── */

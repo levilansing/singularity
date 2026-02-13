@@ -36,6 +36,3 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # scripts/ headshot processor output and venv
 scripts/headshots
 scripts/.venv
-
-# generated data
-src/data/predictions.json
