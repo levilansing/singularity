@@ -9,6 +9,13 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
 
+// Set favicon (added dynamically to avoid Bun bundler resolving the href)
+const faviconLink = document.createElement("link");
+faviconLink.rel = "icon";
+faviconLink.type = "image/svg+xml";
+faviconLink.href = "/favicon.svg";
+document.head.appendChild(faviconLink);
+
 function start() {
   const root = createRoot(document.getElementById("root")!);
   root.render(

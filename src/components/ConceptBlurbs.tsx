@@ -1,14 +1,19 @@
-import { useState } from "react";
 import { CONCEPTS } from "../data/concepts";
 import type { Prediction } from "../data/types";
+
+function LightbulbIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>
+    </svg>
+  );
+}
 
 interface ConceptBlurbsProps {
   prediction: Prediction;
 }
 
 export function ConceptBlurbs({ prediction }: ConceptBlurbsProps) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-
   const relevantConcepts = prediction.concept_keys
     .map((key) => CONCEPTS[key])
     .filter(Boolean);
@@ -16,43 +21,32 @@ export function ConceptBlurbs({ prediction }: ConceptBlurbsProps) {
   if (relevantConcepts.length === 0) return null;
 
   return (
-    <section className="mb-10">
-      <h3 className="font-mono text-[0.75rem] font-bold text-(--text-muted) m-0 mb-3 uppercase tracking-widest">
-        Concepts at play
-      </h3>
-      <div className="flex flex-col gap-2">
+    <section className="mb-20">
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <span className="text-(--accent)"><LightbulbIcon /></span>
+        <h3 className="font-mono text-[0.75rem] font-bold text-(--text-muted) m-0 uppercase tracking-widest">
+          Concepts at Play
+        </h3>
+      </div>
+      <div className="flex flex-col gap-3">
         {relevantConcepts.map((concept) => (
           <div
             key={concept.key}
-            className="bg-(--bg-card) border border-[#ffffff08] rounded-lg overflow-hidden"
+            className="bg-(--bg-card) border border-[#ffffff08] rounded-lg p-4"
           >
-            <button
-              className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 cursor-pointer hover:bg-[#ffffff05] transition-colors"
-              onClick={() =>
-                setExpanded(expanded === concept.key ? null : concept.key)
-              }
-            >
-              <span className="text-[0.85rem] font-semibold text-(--text)">
-                {concept.label}
-              </span>
-              <span className="text-(--text-dim) text-[0.7rem] shrink-0">
-                {expanded === concept.key ? "▲" : "▼"}
-              </span>
-            </button>
-            {expanded === concept.key && (
-              <div className="px-4 pb-4 text-[0.8rem] text-(--text-muted) leading-relaxed border-t border-[#ffffff06]">
-                <p className="m-0 mt-3">{concept.blurb}</p>
-                {concept.learnMoreUrl && (
-                  <a
-                    href={concept.learnMoreUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-(--accent) text-[0.75rem] font-medium mt-2 block"
-                  >
-                    Read more →
-                  </a>
-                )}
-              </div>
+            <h4 className="text-[0.85rem] font-semibold text-(--text) m-0 mb-2">
+              {concept.label}
+            </h4>
+            <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{concept.blurb}</p>
+            {concept.learnMoreUrl && (
+              <a
+                href={concept.learnMoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-(--accent) text-[0.75rem] font-medium mt-2 block"
+              >
+                Read more →
+              </a>
             )}
           </div>
         ))}

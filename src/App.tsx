@@ -12,6 +12,7 @@ import { SingularityInfo } from "./components/SingularityInfo";
 import { Footer } from "./components/Footer";
 import { StickyHeader } from "./components/StickyHeader";
 import { ConceptBlurbs } from "./components/ConceptBlurbs";
+import { FadeInSection } from "./components/FadeInSection";
 
 const allPredictions = predictions as Prediction[];
 const countdownPredictions = allPredictions.filter((p) => p.has_countdown);
@@ -78,21 +79,37 @@ function PredictionPage() {
       <StickyHeader prediction={selected} />
       <div className="max-w-[1100px] mx-auto px-6 pt-8 pb-4 max-sm:px-3 max-sm:pt-4 max-sm:pb-2">
         <header className="text-center mb-6">
-          <h1 className="app-title font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 mb-1 tracking-tight">The Singularity is Coming</h1>
+          <div className="flex items-center justify-center gap-3 mb-1">
+            <img src="/logo.svg" alt="" className="w-10 h-10 max-sm:w-8 max-sm:h-8" />
+            <h1 className="app-title font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 tracking-tight">The Singularity is Coming</h1>
+          </div>
           <p className="text-(--text-muted) text-[0.95rem] m-0 italic">Tracking humanity's most confident guesses about its own obsolescence</p>
         </header>
 
         <Countdown prediction={selected} onRandom={handleRandom} />
 
-        <section className="mb-16">
-          <h2 className="font-mono text-[1.3rem] font-bold text-center m-0 mb-5 text-(--text)">Every Prediction, Visualized</h2>
-          <Timeline predictions={allPredictions} selectedId={selected.id} onSelect={handleSelect} />
-        </section>
+        <FadeInSection>
+          <section className="mb-20">
+            <div className="flex flex-col items-center mb-6">
+              <img src="/art/timeline-header.svg" alt="" className="w-40 h-auto mb-4 max-sm:w-28 opacity-80" />
+              <h2 className="app-title font-mono text-[1.5rem] font-bold text-center m-0 mb-2">Every Prediction, Visualized</h2>
+              <p className="text-(--text-dim) text-[0.85rem] m-0 italic text-center">The scatter plot of humanity's guesses</p>
+            </div>
+            <Timeline predictions={allPredictions} selectedId={selected.id} onSelect={handleSelect} />
+          </section>
+        </FadeInSection>
 
-        <PredictionCard prediction={selected} />
-        <ConceptBlurbs prediction={selected} />
+        <FadeInSection>
+          <PredictionCard prediction={selected} />
+        </FadeInSection>
 
-        <SingularityInfo />
+        <FadeInSection>
+          <ConceptBlurbs prediction={selected} />
+        </FadeInSection>
+
+        <FadeInSection>
+          <SingularityInfo />
+        </FadeInSection>
         <Footer />
       </div>
     </>

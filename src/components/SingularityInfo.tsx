@@ -3,6 +3,23 @@ import predictions from "../data/predictions.json";
 import type { Prediction } from "../data/types";
 import { AgiIcon, SingularityIcon, SuperintelligenceIcon, IntelligenceExplosionIcon, TransformativeAiIcon, HlmiIcon } from "./TypeIcons";
 
+function GearIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  );
+}
+
+function SparkleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/>
+    </svg>
+  );
+}
+
 const allPredictions = predictions as Prediction[];
 
 /* ────────────────────────────────────────────
@@ -248,35 +265,6 @@ function CrowdEstimateBadge({ result }: { result: WeightedResult }) {
 }
 
 /* ────────────────────────────────────────────
-   Collapsible "details" component
-   ──────────────────────────────────────────── */
-
-function Spoiler({ label, children }: { label: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="mt-3 rounded-lg border border-[#ffffff0a] overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full text-left px-4 py-2.5 flex items-center gap-2 cursor-pointer hover:bg-[#ffffff05] transition-colors text-[0.8rem]"
-      >
-        <span
-          className="inline-block transition-transform duration-200 text-[0.6rem] text-(--text-dim)"
-          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
-        >
-          ▶
-        </span>
-        <span className="font-mono text-(--text-muted) font-medium">{label}</span>
-      </button>
-      {open && (
-        <div className="px-4 pb-3 text-[0.8rem] text-(--text-muted) leading-relaxed border-t border-[#ffffff06]">
-          <div className="mt-3">{children}</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ────────────────────────────────────────────
    Interactive type card carousel
    ──────────────────────────────────────────── */
 
@@ -348,13 +336,23 @@ function TypeCarousel() {
           ))}
         </div>
 
-        <Spoiler label="Technical details">
-          <p className="m-0">{active.techDetails}</p>
-        </Spoiler>
+        {/* Technical Details - always visible */}
+        <div className="mt-4 rounded-lg border border-[#ffffff0a] p-4" style={{ background: `${active.color}05` }}>
+          <div className="flex items-center gap-2 mb-2">
+            <span style={{ color: active.color }}><GearIcon /></span>
+            <span className="font-mono text-[0.8rem] font-bold" style={{ color: active.color }}>Technical Details</span>
+          </div>
+          <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{active.techDetails}</p>
+        </div>
 
-        <Spoiler label="Fun fact">
-          <p className="m-0">{active.funFact}</p>
-        </Spoiler>
+        {/* Fun Fact - always visible */}
+        <div className="mt-3 rounded-lg border border-[#ffffff0a] p-4" style={{ background: `${active.color}05` }}>
+          <div className="flex items-center gap-2 mb-2">
+            <span style={{ color: active.color }}><SparkleIcon /></span>
+            <span className="font-mono text-[0.8rem] font-bold" style={{ color: active.color }}>Fun Fact</span>
+          </div>
+          <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{active.funFact}</p>
+        </div>
 
         {/* Nav arrows */}
         <div className="flex justify-between items-center mt-4 pt-3 border-t border-[#ffffff06]">
@@ -666,12 +664,15 @@ function ThreeCamps() {
 export function SingularityInfo() {
   return (
     <section className="mb-16">
-      <h2 className="font-mono text-[1.3rem] font-bold text-center m-0 mb-1 text-(--text)">
-        What Even Is the Singularity?
-      </h2>
-      <p className="text-center text-(--text-muted) text-[0.85rem] m-0 mb-5 italic">
-        A semi-serious guide to humanity's favorite existential crisis
-      </p>
+      <div className="flex flex-col items-center mb-6">
+        <img src="/art/singularity-info-header.svg" alt="" className="w-44 h-auto mb-4 max-sm:w-32 opacity-80" />
+        <h2 className="app-title font-mono text-[1.5rem] font-bold text-center m-0 mb-1">
+          What Even Is the Singularity?
+        </h2>
+        <p className="text-center text-(--text-muted) text-[0.85rem] m-0 mb-5 italic">
+          A semi-serious guide to humanity's favorite existential crisis
+        </p>
+      </div>
 
       <div className="singularity-info-content bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
         <p>
