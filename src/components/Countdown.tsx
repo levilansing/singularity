@@ -1,12 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import type { Prediction } from "../data/types";
 import { getUrgencyLevel } from "../data/types";
+import { canonicalType } from "../data/colors";
 import { getCommentary } from "../data/commentary";
 import { CountdownDigit } from "./CountdownDigit";
 import { MillisecondsDisplay } from "./MillisecondsDisplay";
 
 interface CountdownProps {
   prediction: Prediction;
+  onRandom?: () => void;
 }
 
 interface TimeRemaining {
@@ -37,7 +40,7 @@ function computeTimeRemaining(targetDate: string): TimeRemaining {
   };
 }
 
-export function Countdown({ prediction }: CountdownProps) {
+export function Countdown({ prediction, onRandom }: CountdownProps) {
   const urgency = getUrgencyLevel(prediction.target_date, prediction.has_countdown);
   const [time, setTime] = useState<TimeRemaining | null>(
     prediction.target_date ? computeTimeRemaining(prediction.target_date) : null
@@ -58,12 +61,33 @@ export function Countdown({ prediction }: CountdownProps) {
 
   return (
     <div className={`countdown-container text-center py-10 px-4 mb-12 rounded-xl bg-(--bg-card) border border-[#ffffff08] transition-all duration-500 max-sm:py-6 max-sm:px-3 urgency-${urgency}`}>
-      <div className="countdown-header text-[0.85rem] uppercase tracking-[0.15em] text-(--text-muted) mb-6">
-        {isPhilosophical
-          ? "Time until the singularity"
-          : isPast
-            ? "Time since the singularity"
-            : "Time until the singularity"}
+
+      <div className="countdown-prediction-year text-[0.95rem] text-(--text-muted) mb-8">
+        {(() => {
+          const year = prediction.prediction_date ? new Date(prediction.prediction_date).getFullYear() : null;
+          if (isPhilosophical) {
+            return <><strong>{prediction.predictor_name}</strong> didn't set a date — just described the abyss</>;
+          }
+          if (prediction.predicted_year_best) {
+            let byDate = String(prediction.predicted_year_best);
+            const dateStr = prediction.target_date ?? prediction.predicted_date_best;
+            if (dateStr) {
+              const d = new Date(dateStr);
+              const month = d.getUTCMonth();
+              const day = d.getUTCDate();
+              // Show month+year unless it's a year-boundary placeholder (Jan 1 or Dec 31)
+              if (!((month === 0 && day === 1) || (month === 11 && day === 31))) {
+                byDate = d.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+              }
+            }
+            return <>
+              {year ? `In ${year}, ` : ""}<strong>{prediction.predictor_name}</strong>
+              {isPast ? " predicted " : " predicted "}
+              <strong>{canonicalType(prediction.prediction_type)}</strong> by <strong>{byDate}</strong>
+            </>;
+          }
+          return <><strong>{prediction.predictor_name}</strong> didn't pin down a year. Helpful.</>;
+        })()}
       </div>
 
       {isPhilosophical && (
@@ -102,25 +126,18 @@ export function Countdown({ prediction }: CountdownProps) {
         </div>
       )}
 
-      <div className="countdown-prediction-year text-[0.95rem] text-(--text-muted) mb-3">
-        {isPhilosophical ? (
-          <>
-            <strong>{prediction.predictor_name}</strong> didn't set a date — just described the abyss
-          </>
-        ) : prediction.predicted_year_best ? (
-          <>
-            According to <strong>{prediction.predictor_name}</strong>
-            {isPast ? ", it already happened in " : ", expect it around "}
-            <strong>{prediction.predicted_year_best}</strong>
-          </>
-        ) : (
-          <>
-            <strong>{prediction.predictor_name}</strong> didn't pin down a year. Helpful.
-          </>
-        )}
-      </div>
+      <div className="countdown-commentary text-[0.9rem] italic h-16 mb-3 flex justify-center items-center w-full">{commentary}</div>
 
-      <div className="text-[0.9rem] italic text-(--text-dim) max-w-[500px] mx-auto">{commentary}</div>
+      <div className="flex justify-center gap-4 text-[0.8rem] text-(--text-dim)">
+        {onRandom && (
+          <button onClick={onRandom} className="hover:text-(--text-muted) transition-colors cursor-pointer bg-transparent border-none font-inherit text-inherit">
+            ↻ Shuffle
+          </button>
+        )}
+        <Link to="/browse" className="hover:text-(--text-muted) transition-colors no-underline text-inherit">
+          Browse all predictions →
+        </Link>
+      </div>
     </div>
   );
 }

@@ -7,11 +7,11 @@
 @layer base {
   :root {
     --bg: #0a0a0f;
-    --bg-card: #12121a;
-    --bg-card-hover: #1a1a28;
-    --text: #e0e0e8;
-    --text-muted: #888898;
-    --text-dim: #555568;
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --bg-card-hover: rgba(255, 255, 255, 0.08);
+    --text: rgba(255, 255, 255, 0.88);
+    --text-muted: rgba(255, 255, 255, 0.50);
+    --text-dim: rgba(255, 255, 255, 0.30);
     --accent: #8b5cf6;
     --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
     --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -91,6 +91,9 @@ body.urgency-philosophical {
 .urgency-past .countdown-header {
   color: #ff666690;
 }
+.urgency-past .countdown-commentary {
+  color: #ff444470;
+}
 
 /* ── Urgency: Imminent ── */
 .countdown-container.urgency-imminent {
@@ -106,6 +109,9 @@ body.urgency-philosophical {
 .urgency-imminent .countdown-separator {
   color: #ff664480;
 }
+.urgency-imminent .countdown-commentary {
+  color: #ff664470;
+}
 
 /* ── Urgency: Near ── */
 .countdown-container.urgency-near {
@@ -120,6 +126,9 @@ body.urgency-philosophical {
 .urgency-near .countdown-separator {
   color: #fbbf2480;
 }
+.urgency-near .countdown-commentary {
+  color: #fbbf2470;
+}
 
 /* ── Urgency: Far ── */
 .countdown-container.urgency-far {
@@ -132,6 +141,9 @@ body.urgency-philosophical {
   color: #e0e0e8;
   text-shadow: 0 0 8px #ffffff15;
 }
+.urgency-far .countdown-commentary {
+  color: rgba(255, 255, 255, 0.35);
+}
 
 /* ── Urgency: Philosophical ── */
 .countdown-container.urgency-philosophical {
@@ -141,6 +153,9 @@ body.urgency-philosophical {
 }
 .urgency-philosophical .countdown-header {
   color: #8b5cf690;
+}
+.urgency-philosophical .countdown-commentary {
+  color: #8b5cf670;
 }
 .urgency-philosophical .countdown-prediction-year {
   color: var(--text-muted);

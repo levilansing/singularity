@@ -17,19 +17,12 @@ const POINT_RADIUS = 5;
 const CHART_HEIGHT = 400;
 const ZOOM_FACTOR = 0.1;
 
-const TYPE_COLORS: Record<string, string> = {
-  AGI: "#3b82f6",
-  Singularity: "#a855f7",
-  Superintelligence: "#ef4444",
-  "Intelligence Explosion": "#f97316",
-  "Transformative AI": "#10b981",
-  "Human-level AI": "#06b6d4",
-};
+import { TYPE_HEX, TYPE_LEGEND_ORDER, canonicalType, getTypeHex } from "../data/colors";
 
-const ALL_TYPES = Object.keys(TYPE_COLORS);
+const ALL_TYPES = TYPE_LEGEND_ORDER;
 
 function getTypeColor(type: string): string {
-  return TYPE_COLORS[type] ?? "#6b7280";
+  return getTypeHex(type);
 }
 
 /** Pick a nice tick step for a given year range */
@@ -75,14 +68,6 @@ function clampViewport(
   if (yMax > maxY) { yMax = maxY; yMin = maxY - yRange; }
 
   return { xMin, xMax, yMin, yMax };
-}
-
-/** Normalize a prediction_type to its canonical legend key */
-function canonicalType(type: string): string {
-  // Map variants like "AGI (weak)", "AGI (strong)", "HLMI" to their legend keys
-  if (type.startsWith("AGI")) return "AGI";
-  if (type === "HLMI") return "Human-level AI";
-  return type;
 }
 
 const TOOLTIP_WIDTH = 280;
@@ -293,25 +278,18 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     setTooltip(null);
   }, []);
 
-  const toggleType = useCallback((type: string) => {
+  const toggleType = useCallback((type: string, shiftKey: boolean) => {
     setActiveTypes((prev) => {
-      if (prev === null) {
-        // First click: select only this type
-        return new Set([type]);
+      if (shiftKey) {
+        // Shift-click: toggle individual item
+        const next = new Set(prev ?? ALL_TYPES);
+        if (next.has(type)) next.delete(type); else next.add(type);
+        if (next.size === 0 || next.size === ALL_TYPES.length) return null;
+        return next;
       }
-      if (prev.size === 1 && prev.has(type)) {
-        // Clicking the only active type: reset to all
-        return null;
-      }
-      const next = new Set(prev);
-      if (next.has(type)) {
-        next.delete(type);
-      } else {
-        next.add(type);
-      }
-      // If all are now active, reset to null
-      if (next.size === ALL_TYPES.length) return null;
-      return next;
+      // Normal click: select only this one, or deselect if it's the only one
+      if (prev !== null && prev.size === 1 && prev.has(type)) return null;
+      return new Set([type]);
     });
   }, []);
 
@@ -432,14 +410,15 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-4 overflow-hidden" ref={containerRef}>
       {/* Legend — clickable to filter */}
       <div className="flex flex-wrap gap-3 justify-center mb-3 text-xs">
-        {Object.entries(TYPE_COLORS).map(([type, color]) => {
+        {TYPE_LEGEND_ORDER.map((type) => {
+          const color = TYPE_HEX[type];
           const isActive = activeTypes === null || activeTypes.has(type);
           return (
             <button
               key={type}
               className="flex items-center gap-1 cursor-pointer transition-opacity duration-150"
               style={{ opacity: isActive ? 1 : 0.3 }}
-              onClick={() => toggleType(type)}
+              onClick={(e) => toggleType(type, e.shiftKey)}
             >
               <span
                 className="size-2 rounded-full shrink-0 transition-colors duration-150"

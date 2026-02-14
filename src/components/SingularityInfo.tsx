@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import predictions from "../data/predictions.json";
 import type { Prediction } from "../data/types";
+import { AgiIcon, SingularityIcon, SuperintelligenceIcon, IntelligenceExplosionIcon, TransformativeAiIcon, HlmiIcon } from "./TypeIcons";
 
 const allPredictions = predictions as Prediction[];
 
@@ -76,7 +77,7 @@ function computeWeightedAverages(): Record<string, WeightedResult> {
 interface EventType {
   id: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   tagline: string;
   color: string;
   description: string;
@@ -89,7 +90,7 @@ const EVENT_TYPES: EventType[] = [
   {
     id: "agi",
     label: "AGI",
-    icon: "🧠",
+    icon: <AgiIcon />,
     tagline: "The One Everyone Argues About",
     color: "#8b5cf6",
     description:
@@ -103,7 +104,7 @@ const EVENT_TYPES: EventType[] = [
   {
     id: "singularity",
     label: "The Singularity",
-    icon: "🕳️",
+    icon: <SingularityIcon />,
     tagline: "The Point of No Return",
     color: "#f59e0b",
     description:
@@ -117,7 +118,7 @@ const EVENT_TYPES: EventType[] = [
   {
     id: "asi",
     label: "Superintelligence",
-    icon: "⚡",
+    icon: <SuperintelligenceIcon />,
     tagline: "The One That Keeps Safety Researchers Up at Night",
     color: "#ef4444",
     description:
@@ -131,7 +132,7 @@ const EVENT_TYPES: EventType[] = [
   {
     id: "intelligence-explosion",
     label: "Intelligence Explosion",
-    icon: "💥",
+    icon: <IntelligenceExplosionIcon />,
     tagline: "Recursion, but Make It Existential",
     color: "#10b981",
     description:
@@ -145,7 +146,7 @@ const EVENT_TYPES: EventType[] = [
   {
     id: "tai",
     label: "Transformative AI",
-    icon: "🔄",
+    icon: <TransformativeAiIcon />,
     tagline: "The Pragmatist's Definition",
     color: "#06b6d4",
     description:
@@ -159,7 +160,7 @@ const EVENT_TYPES: EventType[] = [
   {
     id: "hlmi",
     label: "Human-Level AI",
-    icon: "🤖",
+    icon: <HlmiIcon />,
     tagline: "As Smart as You (Yes, You Specifically)",
     color: "#a855f7",
     description:
@@ -303,7 +304,7 @@ function TypeCarousel() {
               color: i === activeIdx ? t.color : "var(--text-dim)",
             }}
           >
-            <span className="mr-1">{t.icon}</span>
+            <span className="mr-1 text-base">{t.icon}</span>
             {t.label}
           </button>
         ))}
@@ -315,7 +316,7 @@ function TypeCarousel() {
         style={{ borderColor: `${active.color}20` }}
       >
         <div className="flex items-start gap-3 mb-3">
-          <span className="text-2xl leading-none">{active.icon}</span>
+          <span className="text-2xl leading-none -mt-1" style={{ fontSize: "2rem" }}>{active.icon}</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
@@ -382,26 +383,7 @@ function TypeCarousel() {
    Prediction Drift scatter plot
    ──────────────────────────────────────────── */
 
-const TYPE_COLORS: Record<string, string> = {
-  "AGI": "#8b5cf6",
-  "AGI (weak)": "#8b5cf6",
-  "AGI (strong)": "#8b5cf6",
-  "Singularity": "#f59e0b",
-  "Superintelligence": "#ef4444",
-  "Intelligence Explosion": "#10b981",
-  "Transformative AI": "#06b6d4",
-  "HLMI": "#a855f7",
-  "Human-level AI": "#a855f7",
-};
-
-const TYPE_LEGEND_ORDER = [
-  { label: "AGI", color: "#8b5cf6" },
-  { label: "Singularity", color: "#f59e0b" },
-  { label: "Superintelligence", color: "#ef4444" },
-  { label: "Intel. Explosion", color: "#10b981" },
-  { label: "Transformative AI", color: "#06b6d4" },
-  { label: "HLMI", color: "#a855f7" },
-];
+import { TYPE_HEX, TYPE_LEGEND_ORDER as LEGEND_ORDER, getTypeHex } from "../data/colors";
 
 interface ScatterPoint {
   madeYear: number;
@@ -426,7 +408,7 @@ function computeScatterData(): { points: ScatterPoint[]; medians: { year: number
     points.push({
       madeYear,
       predictedYear,
-      color: TYPE_COLORS[p.prediction_type] ?? "#888898",
+      color: getTypeHex(p.prediction_type),
       name: p.predictor_name,
       type: p.prediction_type,
     });
@@ -496,10 +478,10 @@ function PredictionDrift() {
       <div className="bg-(--bg-card) border border-[#ffffff08] rounded-xl p-5 max-sm:p-3">
         {/* Legend */}
         <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mb-3">
-          {TYPE_LEGEND_ORDER.map((t) => (
-            <span key={t.label} className="flex items-center gap-1 text-[0.6rem] font-mono" style={{ color: t.color }}>
-              <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: t.color }} />
-              {t.label}
+          {LEGEND_ORDER.map((type) => (
+            <span key={type} className="flex items-center gap-1 text-[0.6rem] font-mono" style={{ color: TYPE_HEX[type] }}>
+              <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: TYPE_HEX[type] }} />
+              {type}
             </span>
           ))}
           <span className="flex items-center gap-1 text-[0.6rem] font-mono text-(--text-dim)">

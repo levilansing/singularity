@@ -6,7 +6,7 @@ import type { Prediction } from "./data/types";
 import { getUrgencyLevel, slugify } from "./data/types";
 import { Countdown } from "./components/Countdown";
 import { PredictionCard } from "./components/PredictionCard";
-import { PredictionPicker } from "./components/PredictionPicker";
+import { BrowseAll } from "./components/BrowseAll";
 import { Timeline } from "./components/Timeline";
 import { SingularityInfo } from "./components/SingularityInfo";
 import { Footer } from "./components/Footer";
@@ -82,14 +82,7 @@ function PredictionPage() {
           <p className="text-(--text-muted) text-[0.95rem] m-0 italic">Tracking humanity's most confident guesses about its own obsolescence</p>
         </header>
 
-        <PredictionPicker
-          predictions={allPredictions}
-          selectedId={selected.id}
-          onSelect={handleSelect}
-          onRandom={handleRandom}
-        />
-
-        <Countdown prediction={selected} />
+        <Countdown prediction={selected} onRandom={handleRandom} />
 
         <section className="mb-16">
           <h2 className="font-mono text-[1.3rem] font-bold text-center m-0 mb-5 text-(--text)">Every Prediction, Visualized</h2>
@@ -109,6 +102,7 @@ function PredictionPage() {
 export function App() {
   return (
     <Routes>
+      <Route path="/browse" element={<BrowseAll predictions={allPredictions} />} />
       <Route path="/" element={<PredictionPage />} />
       <Route path="/:id/*" element={<PredictionPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
