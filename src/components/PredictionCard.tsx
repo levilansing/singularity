@@ -25,7 +25,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
       : prediction.prediction_type;
 
   return (
-    <div className="bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 mb-16 max-sm:p-4">
+    <div className="bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
       {/* Predictor header */}
       <div className="flex items-center gap-4 mb-5">
         <div className="shrink-0 size-14 rounded-full overflow-hidden">

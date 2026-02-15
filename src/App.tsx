@@ -8,11 +8,12 @@ import { Countdown } from "./components/Countdown";
 import { PredictionCard } from "./components/PredictionCard";
 import { BrowseAll } from "./components/BrowseAll";
 import { Timeline } from "./components/Timeline";
-import { SingularityInfo } from "./components/SingularityInfo";
+import { SingularityInfo, TypeCarousel, PredictionDrift, ThreeCamps, ShouldIBeWorried } from "./components/SingularityInfo";
 import { Footer } from "./components/Footer";
 import { StickyHeader } from "./components/StickyHeader";
 import { ConceptBlurbs } from "./components/ConceptBlurbs";
 import { FadeInSection } from "./components/FadeInSection";
+import { SectionHeader } from "./components/SectionHeader";
 
 const allPredictions = predictions as Prediction[];
 const countdownPredictions = allPredictions.filter((p) => p.has_countdown);
@@ -76,40 +77,52 @@ function PredictionPage() {
 
   return (
     <>
-      <StickyHeader prediction={selected} />
-      <div className="max-w-[1100px] mx-auto px-6 pt-8 pb-4 max-sm:px-3 max-sm:pt-4 max-sm:pb-2">
-        <header className="text-center mb-6">
-          <div className="flex items-center justify-center gap-3 mb-1">
-            <img src="/logo.svg" alt="" className="w-10 h-10 max-sm:w-8 max-sm:h-8" />
-            <h1 className="app-title font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 tracking-tight">The Singularity is Coming</h1>
-          </div>
-          <p className="text-(--text-muted) text-[0.95rem] m-0 italic">Tracking humanity's most confident guesses about its own obsolescence</p>
-        </header>
+      <StickyHeader prediction={selected} onRandom={handleRandom} />
+      <header className="text-center pt-14 mb-12 max-sm:pt-8 max-sm:mb-8">
+        <h1 className="font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 tracking-tight text-center bg-linear-to-r from-[#e879a8] via-[#c084fc] to-[#67e8f9] bg-clip-text text-transparent">The Singularity is Coming</h1>
+        <p className="text-[#c084fcaa] text-[0.95rem] m-0 italic text-center mt-1">Tracking humanity's most confident guesses about its own obsolescence</p>
+      </header>
 
-        <Countdown prediction={selected} onRandom={handleRandom} />
+      <div className="max-w-[1100px] mx-auto px-6 pb-4 max-sm:px-3 max-sm:pb-2">
 
-        <FadeInSection>
-          <section className="mb-20">
-            <div className="flex flex-col items-center mb-6">
-              <img src="/art/timeline-header.svg" alt="" className="w-40 h-auto mb-4 max-sm:w-28 opacity-80" />
-              <h2 className="app-title font-mono text-[1.5rem] font-bold text-center m-0 mb-2">Every Prediction, Visualized</h2>
-              <p className="text-(--text-dim) text-[0.85rem] m-0 italic text-center">The scatter plot of humanity's guesses</p>
-            </div>
-            <Timeline predictions={allPredictions} selectedId={selected.id} onSelect={handleSelect} />
-          </section>
-        </FadeInSection>
+        <div className="mb-10 max-sm:mb-6">
+          <Countdown prediction={selected} onRandom={handleRandom} />
+        </div>
 
-        <FadeInSection>
-          <PredictionCard prediction={selected} />
-        </FadeInSection>
+        <div className="flex flex-col gap-16 max-sm:gap-10">
+          <FadeInSection>
+            <section>
+              <SectionHeader title="Every Prediction, Visualized" />
+              <Timeline predictions={allPredictions} selectedId={selected.id} onSelect={handleSelect} />
+            </section>
+          </FadeInSection>
 
-        <FadeInSection>
-          <ConceptBlurbs prediction={selected} />
-        </FadeInSection>
+          <FadeInSection>
+            <PredictionCard prediction={selected} />
+            <ConceptBlurbs prediction={selected} />
+          </FadeInSection>
 
-        <FadeInSection>
-          <SingularityInfo />
-        </FadeInSection>
+          <FadeInSection>
+            <SingularityInfo />
+          </FadeInSection>
+
+          <FadeInSection>
+            <TypeCarousel />
+          </FadeInSection>
+
+          <FadeInSection>
+            <PredictionDrift />
+          </FadeInSection>
+
+          <FadeInSection>
+            <ThreeCamps />
+          </FadeInSection>
+
+          <FadeInSection>
+            <ShouldIBeWorried />
+          </FadeInSection>
+        </div>
+        <div className="pt-8" />
         <Footer />
       </div>
     </>

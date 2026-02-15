@@ -28,7 +28,7 @@ export function FadeInSection({ children, className = "" }: FadeInSectionProps) 
   }, []);
 
   return (
-    <div ref={ref} className={`fade-in-section ${isVisible ? "visible" : ""} ${className}`}>
+    <div ref={ref} className={`fade-in-section duration-500 py-8 max-sm:py-5 ${isVisible ? "visible" : ""} ${className}`}>
       {children}
     </div>
   );

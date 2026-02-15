@@ -319,8 +319,19 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     if (!svg) return;
 
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
       const rect = svg.getBoundingClientRect();
+      // Only zoom when cursor is in the plot area
+      const scaleXCheck = svgWidth / rect.width;
+      const scaleYCheck = svgHeight / rect.height;
+      const checkX = (e.clientX - rect.left) * scaleXCheck;
+      const checkY = (e.clientY - rect.top) * scaleYCheck;
+      if (
+        checkX < PADDING_LEFT ||
+        checkX > svgWidth - PADDING_RIGHT ||
+        checkY < PADDING_TOP ||
+        checkY > PADDING_TOP + CHART_HEIGHT
+      ) return;
+      e.preventDefault();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
@@ -364,13 +375,30 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   const isPanning = useRef(false);
   const panStart = useRef({ x: 0, y: 0, vp: vp });
 
+  const isInPlotArea = useCallback((clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return false;
+    const rect = svg.getBoundingClientRect();
+    const scaleX = svgWidth / rect.width;
+    const scaleY = svgHeight / rect.height;
+    const svgX = (clientX - rect.left) * scaleX;
+    const svgY = (clientY - rect.top) * scaleY;
+    return (
+      svgX >= PADDING_LEFT &&
+      svgX <= svgWidth - PADDING_RIGHT &&
+      svgY >= PADDING_TOP &&
+      svgY <= PADDING_TOP + CHART_HEIGHT
+    );
+  }, [svgWidth, svgHeight]);
+
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    // Only pan on background clicks (not on data points)
+    // Only pan on background clicks (not on data points), and only in the plot area
     if ((e.target as SVGElement).closest(".timeline-row")) return;
+    if (!isInPlotArea(e.clientX, e.clientY)) return;
     isPanning.current = true;
     panStart.current = { x: e.clientX, y: e.clientY, vp: { ...vp } };
     (e.target as SVGElement).setPointerCapture(e.pointerId);
-  }, [vp]);
+  }, [vp, isInPlotArea]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!isPanning.current) return;
@@ -442,7 +470,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
           onDoubleClick={onDoubleClick}
-          style={{ touchAction: "none", cursor: isPanning.current ? "grabbing" : "grab", userSelect: "none" }}
+          style={{ touchAction: "none", cursor: "default", userSelect: "none" }}
         >
           {/* Clip path for chart area */}
           <defs>
@@ -450,6 +478,16 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
               <rect x={PADDING_LEFT} y={PADDING_TOP} width={svgWidth - PADDING_LEFT - PADDING_RIGHT} height={CHART_HEIGHT} />
             </clipPath>
           </defs>
+
+          {/* Plot area background (grab cursor zone) */}
+          <rect
+            x={PADDING_LEFT}
+            y={PADDING_TOP}
+            width={svgWidth - PADDING_LEFT - PADDING_RIGHT}
+            height={CHART_HEIGHT}
+            fill="transparent"
+            style={{ cursor: isPanning.current ? "grabbing" : "grab" }}
+          />
 
           {/* X-axis grid lines & labels */}
           {xTicks.map((year) => {

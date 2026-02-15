@@ -244,13 +244,17 @@ export function BrowseAll({ predictions }: BrowseAllProps) {
             className="block p-3 rounded-lg bg-(--bg-card) border border-[#ffffff08] no-underline text-inherit hover:bg-[#ffffff10] transition-colors"
           >
             <div className="flex justify-between items-baseline mb-1.5">
-              <span className="font-medium text-(--text) text-[0.9rem]">{p.predictor_name}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="font-medium text-(--text) text-[0.9rem]">{p.predictor_name}</span>
+                {p.prediction_date && <span className="text-[0.7rem] text-(--text-dim)">{formatDate(p.prediction_date)}</span>}
+              </div>
               <span className="text-(--text-dim) text-[0.8rem]">{p.predicted_year_best ?? "—"}</span>
             </div>
-            <div className="flex flex-wrap gap-1.5 items-center">
+            <div className="flex justify-between items-center">
+              <div className="flex flex-wrap gap-1.5">
+                {p.confidence_label && <Badge label={p.confidence_label} colorClass={getConfidenceBadge(p.confidence_type)} />}
+              </div>
               <Badge label={canonicalType(p.prediction_type)} colorClass={getTypeBadge(p.prediction_type)} />
-              {p.confidence_label && <Badge label={p.confidence_label} colorClass={getConfidenceBadge(p.confidence_type)} />}
-              {p.prediction_date && <span className="text-[0.7rem] text-(--text-dim)">{formatDate(p.prediction_date)}</span>}
             </div>
           </Link>
         ))}

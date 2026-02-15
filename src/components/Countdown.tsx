@@ -6,6 +6,7 @@ import { canonicalType } from "../data/colors";
 import { getCommentary } from "../data/commentary";
 import { CountdownDigit } from "./CountdownDigit";
 import { MillisecondsDisplay } from "./MillisecondsDisplay";
+import { ShuffleIcon } from "./ShuffleIcon";
 
 interface CountdownProps {
   prediction: Prediction;
@@ -130,8 +131,9 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
 
       <div className="flex justify-center gap-4 text-[0.8rem] text-(--text-dim)">
         {onRandom && (
-          <button onClick={onRandom} className="hover:text-(--text-muted) transition-colors cursor-pointer bg-transparent border-none font-inherit text-inherit">
-            ↻ Shuffle
+          <button onClick={onRandom} className="hover:text-(--text-muted) transition-colors cursor-pointer bg-transparent border-none font-inherit text-inherit flex items-center gap-1.5">
+            <ShuffleIcon size={14} />
+            Shuffle
           </button>
         )}
         <Link to="/browse" className="hover:text-(--text-muted) transition-colors no-underline text-inherit">

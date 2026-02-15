@@ -10,7 +10,7 @@
     --bg-card: rgba(255, 255, 255, 0.04);
     --bg-card-hover: rgba(255, 255, 255, 0.08);
     --text: rgba(255, 255, 255, 0.88);
-    --text-muted: rgba(255, 255, 255, 0.50);
+    --text-muted: rgba(255, 255, 255, 0.60);
     --text-dim: rgba(255, 255, 255, 0.30);
     --accent: #8b5cf6;
     --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
@@ -19,6 +19,10 @@
 
   * {
     box-sizing: border-box;
+  }
+
+  html {
+    font-size: 17px;
   }
 
   body {
@@ -58,17 +62,6 @@ body.urgency-far {
 }
 body.urgency-philosophical {
   background: linear-gradient(135deg, #05051a 0%, #0a0a0f 50%, #0a0515 100%);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   APP TITLE GRADIENT (can't do animated gradient text in TW)
-   ═══════════════════════════════════════════════════════════ */
-
-.app-title {
-  background: linear-gradient(135deg, #e0e0e8, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 /* ═══════════════════════════════════════════════════════════

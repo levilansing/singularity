@@ -104,33 +104,29 @@ export function TransformativeAiIcon({ size = "1.4em" }: IconProps) {
   );
 }
 
-/** Human-Level AI — large split head: human left, circuit right */
+/** Human-Level AI — chalk-outline humanoid with square CRT head */
 export function HlmiIcon({ size = "1.4em" }: IconProps) {
   const c = "#a855f7";
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ ...s, width: size, height: size }}>
-      {/* Human half (left) — smooth curves */}
-      <path d="M12 2C7.6 2 4 5.6 4 10c0 2.8 1.4 5.2 3.5 6.7.5.3.5.8.5 1.3v2h4" />
-      {/* Circuit half (right) — angular */}
-      <path d="M12 2c4.4 0 8 3.6 8 8 0 2.8-1.4 5.2-3.5 6.7-.5.3-.5.8-.5 1.3v2h-4" />
-      {/* Dividing line */}
-      <line x1="12" y1="2" x2="12" y2="20" strokeDasharray="2 2" opacity={0.3} />
+    <svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" style={{ ...s, width: size, height: size }}>
+      {/* Square CRT head */}
+      <rect x="7" y="1.5" width="10" height="8" rx="0.8" />
+      {/* Eyes on screen */}
+      <line x1="9.8" y1="4.8" x2="10.8" y2="4.8" strokeWidth={1.6} opacity={0.8} />
+      <line x1="13.2" y1="4.8" x2="14.2" y2="4.8" strokeWidth={1.6} opacity={0.8} />
       {/* Neck */}
-      <line x1="8" y1="20" x2="16" y2="20" />
-      <line x1="8.5" y1="22" x2="15.5" y2="22" />
-      {/* Human eye — round */}
-      <circle cx="9" cy="10" r="1.4" />
-      <circle cx="9" cy="10" r="0.5" fill={c} stroke="none" />
-      {/* Circuit eye — square */}
-      <rect x="13.5" y="8.5" width="3" height="3" rx="0.4" />
-      <circle cx="15" cy="10" r="0.5" fill={c} stroke="none" />
-      {/* Circuit traces from right eye */}
-      <line x1="16.5" y1="8.5" x2="18" y2="7" opacity={0.5} strokeWidth={1} />
-      <line x1="16.5" y1="11.5" x2="18" y2="13" opacity={0.5} strokeWidth={1} />
-      <circle cx="18" cy="7" r="0.6" fill={c} stroke="none" opacity={0.5} />
-      <circle cx="18" cy="13" r="0.6" fill={c} stroke="none" opacity={0.5} />
-      {/* Human smile */}
-      <path d="M7.5 14a2.5 2.5 0 0 0 4 0" strokeWidth={1.2} />
+      <line x1="12" y1="9.5" x2="12" y2="11" />
+      {/* Shoulders + torso — single chalk stroke */}
+      <path d="M5.5 13 C5.5 11.5 8 11 12 11 C16 11 18.5 11.5 18.5 13" />
+      <line x1="8" y1="12" x2="8" y2="18" />
+      <line x1="16" y1="12" x2="16" y2="18" />
+      <line x1="8" y1="18" x2="16" y2="18" />
+      {/* Arms */}
+      <line x1="5.5" y1="13" x2="3.5" y2="17.5" />
+      <line x1="18.5" y1="13" x2="20.5" y2="17.5" />
+      {/* Legs */}
+      <line x1="10" y1="18" x2="8" y2="23" />
+      <line x1="14" y1="18" x2="16" y2="23" />
     </svg>
   );
 }

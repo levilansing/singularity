@@ -1,5 +1,6 @@
-import { CONCEPTS } from "../data/concepts";
+import { CONCEPTS, type Concept } from "../data/concepts";
 import type { Prediction } from "../data/types";
+import { CONCEPT_ICONS, type IconProps } from "./ConceptIcons";
 
 function LightbulbIcon() {
   return (
@@ -16,13 +17,13 @@ interface ConceptBlurbsProps {
 export function ConceptBlurbs({ prediction }: ConceptBlurbsProps) {
   const relevantConcepts = prediction.concept_keys
     .map((key) => CONCEPTS[key])
-    .filter(Boolean);
+    .filter(Boolean) as Concept[];
 
   if (relevantConcepts.length === 0) return null;
 
   return (
-    <section className="mb-20">
-      <div className="flex items-center justify-center gap-2 mb-4">
+    <section>
+      <div className="flex items-center justify-center gap-2 mt-12 mb-4">
         <span className="text-(--accent)"><LightbulbIcon /></span>
         <h3 className="font-mono text-[0.75rem] font-bold text-(--text-muted) m-0 uppercase tracking-widest">
           Concepts at Play
@@ -34,7 +35,8 @@ export function ConceptBlurbs({ prediction }: ConceptBlurbsProps) {
             key={concept.key}
             className="bg-(--bg-card) border border-[#ffffff08] rounded-lg p-4"
           >
-            <h4 className="text-[0.85rem] font-semibold text-(--text) m-0 mb-2">
+            <h4 className="text-[0.85rem] font-semibold text-(--text) m-0 mb-2 flex items-center gap-2">
+              {CONCEPT_ICONS[concept.key] && (() => { const Icon = CONCEPT_ICONS[concept.key] as React.FC<IconProps>; return <Icon size="1.3em" />; })()}
               {concept.label}
             </h4>
             <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{concept.blurb}</p>

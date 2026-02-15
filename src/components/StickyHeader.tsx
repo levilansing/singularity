@@ -3,9 +3,11 @@ import type { Prediction } from "../data/types";
 import { getUrgencyLevel } from "../data/types";
 import { CountdownDigit } from "./CountdownDigit";
 import { MillisecondsDisplayCompact } from "./MillisecondsDisplay";
+import { ShuffleIcon } from "./ShuffleIcon";
 
 interface StickyHeaderProps {
   prediction: Prediction;
+  onRandom?: () => void;
 }
 
 interface TimeRemaining {
@@ -36,7 +38,7 @@ function computeTimeRemaining(targetDate: string): TimeRemaining {
   };
 }
 
-export function StickyHeader({ prediction }: StickyHeaderProps) {
+export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
   const [isVisible, setIsVisible] = useState(false);
   const urgency = getUrgencyLevel(prediction.target_date, prediction.has_countdown);
   const [time, setTime] = useState<TimeRemaining | null>(
@@ -86,22 +88,33 @@ export function StickyHeader({ prediction }: StickyHeaderProps) {
             <MillisecondsDisplayCompact />
           </div>
         )}
-        <div className="flex flex-col gap-0.5 max-sm:text-center">
-          <span className="text-[0.7rem] uppercase tracking-[0.1em] text-(--text-muted)">
-            {isPhilosophical ? "Beyond time" : isPast ? "Since" : "Until"} {isPhilosophical ? "" : "the singularity"}
-          </span>
-          <span className="sticky-header-prediction text-[0.85rem] text-(--text-muted)">
-            {isPhilosophical ? (
-              <strong>{prediction.predictor_name}</strong>
-            ) : (
-              <>
-                According to <strong>{prediction.predictor_name}</strong>
-                {prediction.predicted_year_best && (
-                  <> ({prediction.predicted_year_best})</>
-                )}
-              </>
-            )}
-          </span>
+        <div className="flex flex-row gap-4">
+          <div className="flex flex-col gap-0.5 max-sm:text-center">
+            <span className="text-[0.7rem] uppercase tracking-[0.1em] text-(--text-muted)">
+              {isPhilosophical ? "Beyond time" : isPast ? "Since" : "Until"} {isPhilosophical ? "" : "the singularity"}
+            </span>
+            <span className="sticky-header-prediction text-[0.85rem] text-(--text-muted)">
+              {isPhilosophical ? (
+                <strong>{prediction.predictor_name}</strong>
+              ) : (
+                <>
+                  According to <strong>{prediction.predictor_name}</strong>
+                  {prediction.predicted_year_best && (
+                    <> ({prediction.predicted_year_best})</>
+                  )}
+                </>
+              )}
+            </span>
+          </div>
+          {onRandom && (
+            <button
+              onClick={onRandom}
+              title="Random prediction"
+              className="ml-auto p-1.5 rounded-md text-(--text-dim) hover:text-(--text) hover:bg-[#ffffff0a] transition-colors cursor-pointer max-sm:ml-0"
+            >
+              <ShuffleIcon size={18} />
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -11,6 +11,11 @@ const server = serve({
       if (await file.exists()) return new Response(file);
       return new Response("Not found", { status: 404 });
     },
+    "/art/:file": async (req) => {
+      const file = Bun.file(`public/art/${req.params.file}`);
+      if (await file.exists()) return new Response(file);
+      return new Response("Not found", { status: 404 });
+    },
     "/logo.svg": async () => new Response(Bun.file("public/logo.svg"), { headers: { "Content-Type": "image/svg+xml" } }),
     "/favicon.svg": async () => new Response(Bun.file("public/favicon.svg"), { headers: { "Content-Type": "image/svg+xml" } }),
     "/*": index,

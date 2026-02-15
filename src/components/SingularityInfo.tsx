@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import predictions from "../data/predictions.json";
 import type { Prediction } from "../data/types";
 import { AgiIcon, SingularityIcon, SuperintelligenceIcon, IntelligenceExplosionIcon, TransformativeAiIcon, HlmiIcon } from "./TypeIcons";
+import { SectionHeader } from "./SectionHeader";
 
 function GearIcon() {
   return (
@@ -268,16 +269,15 @@ function CrowdEstimateBadge({ result }: { result: WeightedResult }) {
    Interactive type card carousel
    ──────────────────────────────────────────── */
 
-function TypeCarousel() {
+export function TypeCarousel() {
   const [activeIdx, setActiveIdx] = useState(0);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const active = EVENT_TYPES[activeIdx]!;
   const averages = useMemo(computeWeightedAverages, []);
 
   return (
-    <div className="mt-8">
-      <h3 className="font-mono text-[0.75rem] font-bold text-(--text-muted) m-0 mb-4 uppercase tracking-widest text-center">
-        The Six Things We're Actually Tracking
-      </h3>
+    <section>
+      <SectionHeader title="The Six Things We're Actually Tracking" />
 
       {/* Tab bar */}
       <div className="flex flex-wrap justify-center gap-1.5 mb-5">
@@ -285,11 +285,13 @@ function TypeCarousel() {
           <button
             key={t.id}
             onClick={() => setActiveIdx(i)}
+            onMouseEnter={() => setHoveredIdx(i)}
+            onMouseLeave={() => setHoveredIdx(null)}
             className="px-3 py-1.5 rounded-full text-[0.75rem] font-mono font-medium cursor-pointer transition-all duration-200 border"
             style={{
-              background: i === activeIdx ? `${t.color}18` : "transparent",
-              borderColor: i === activeIdx ? `${t.color}40` : "#ffffff0a",
-              color: i === activeIdx ? t.color : "var(--text-dim)",
+              background: i === activeIdx ? `${t.color}18` : i === hoveredIdx ? `${t.color}0c` : "transparent",
+              borderColor: i === activeIdx ? `${t.color}40` : i === hoveredIdx ? `${t.color}25` : "#ffffff0a",
+              color: i === activeIdx ? t.color : i === hoveredIdx ? `${t.color}cc` : "var(--text-dim)",
             }}
           >
             <span className="mr-1 text-base">{t.icon}</span>
@@ -373,7 +375,7 @@ function TypeCarousel() {
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -441,7 +443,7 @@ function computeScatterData(): { points: ScatterPoint[]; medians: { year: number
   return { points, medians };
 }
 
-function PredictionDrift() {
+export function PredictionDrift() {
   const { points, medians } = useMemo(computeScatterData, []);
 
   // Chart bounds
@@ -465,34 +467,30 @@ function PredictionDrift() {
   const gridXYears = [1995, 2000, 2005, 2010, 2015, 2020, 2025];
 
   return (
-    <div className="mt-8">
-      <h3 className="font-mono text-[0.75rem] font-bold text-(--text-muted) m-0 mb-1 uppercase tracking-widest text-center">
-        The Predictions Are Accelerating
-      </h3>
-      <p className="text-center text-[0.78rem] text-(--text-dim) m-0 mb-4 italic">
-        Every prediction in our dataset: when it was made vs. when they said it would happen
-      </p>
+    <section>
+      <SectionHeader title="The Predictions Are Accelerating" />
 
       <div className="bg-(--bg-card) border border-[#ffffff08] rounded-xl p-5 max-sm:p-3">
-        {/* Legend */}
-        <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mb-3">
-          {LEGEND_ORDER.map((type) => (
-            <span key={type} className="flex items-center gap-1 text-[0.6rem] font-mono" style={{ color: TYPE_HEX[type] }}>
-              <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: TYPE_HEX[type] }} />
-              {type}
+        <div className="flex max-md:flex-col">
+          {/* Legend — side on large screens, top on small */}
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mb-3 md:flex-col md:mb-0 md:mr-4 md:justify-start md:gap-y-2 md:pt-2">
+            {LEGEND_ORDER.map((type) => (
+              <span key={type} className="flex items-center gap-1 text-[0.6rem] font-mono whitespace-nowrap" style={{ color: TYPE_HEX[type] }}>
+                <span className="inline-block w-1.5 h-1.5 rounded-full shrink-0" style={{ background: TYPE_HEX[type] }} />
+                {type}
+              </span>
+            ))}
+            <span className="flex items-center gap-1 text-[0.6rem] font-mono text-(--text-dim) whitespace-nowrap">
+              <span className="inline-block w-3 h-0.5 rounded shrink-0" style={{ background: "#8b5cf6" }} />
+              median
             </span>
-          ))}
-          <span className="flex items-center gap-1 text-[0.6rem] font-mono text-(--text-dim)">
-            <span className="inline-block w-3 h-0.5 rounded" style={{ background: "#8b5cf6" }} />
-            median
-          </span>
-        </div>
+          </div>
 
-        <svg
-          viewBox={`0 0 ${w} ${h}`}
-          className="w-full"
-          style={{ maxHeight: "340px" }}
-        >
+          <svg
+            viewBox={`0 0 ${w} ${h}`}
+            className="w-full flex-1 min-w-0"
+            style={{ maxHeight: "340px" }}
+          >
           {/* Horizontal grid lines + Y-axis labels */}
           {gridYears.map((y, i , arr) => (
             <g key={`gy-${y}`}>
@@ -597,9 +595,10 @@ function PredictionDrift() {
             ChatGPT Launches
           </text>
         </svg>
+        </div>
 
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -607,7 +606,7 @@ function PredictionDrift() {
    The "camps" comparison
    ──────────────────────────────────────────── */
 
-function ThreeCamps() {
+export function ThreeCamps() {
   const camps = [
     {
       label: "The Optimists",
@@ -633,10 +632,8 @@ function ThreeCamps() {
   ];
 
   return (
-    <div className="mt-8">
-      <h3 className="font-mono text-[0.75rem] font-bold text-(--text-muted) m-0 mb-4 uppercase tracking-widest text-center">
-        Three Camps, One Civilization
-      </h3>
+    <section>
+      <SectionHeader title="Three Camps, One Civilization" />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {camps.map((c) => (
           <div
@@ -653,7 +650,7 @@ function ThreeCamps() {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -663,68 +660,75 @@ function ThreeCamps() {
 
 export function SingularityInfo() {
   return (
-    <section className="mb-16">
-      <div className="flex flex-col items-center mb-6">
-        <img src="/art/singularity-info-header.svg" alt="" className="w-44 h-auto mb-4 max-sm:w-32 opacity-80" />
-        <h2 className="app-title font-mono text-[1.5rem] font-bold text-center m-0 mb-1">
-          What Even Is the Singularity?
-        </h2>
-        <p className="text-center text-(--text-muted) text-[0.85rem] m-0 mb-5 italic">
-          A semi-serious guide to humanity's favorite existential crisis
-        </p>
-      </div>
+    <section>
+      <SectionHeader title="What Even Is the Singularity?" />
 
       <div className="singularity-info-content bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
-        <p>
-          Short answer: nobody agrees. The <strong>technological singularity</strong> is the
-          hypothetical future point where AI gets smart enough to improve itself faster than we can
-          keep up, and everything after that is... unknowable. It's the point where all our trend
-          lines go vertical and our prediction models start returning <code className="text-[0.8em] bg-[#ffffff08] px-1.5 py-0.5 rounded font-mono">NaN</code>.
-        </p>
-        <p>
-          The term was coined (sort of) by mathematician <strong>John von Neumann</strong> in the
-          1950s, formalized by <strong>Vernor Vinge</strong> in 1993, and turned into a bestseller by{" "}
-          <strong>Ray Kurzweil</strong> in 2005. Since then, hundreds of experts have confidently
-          predicted exactly when this will happen. They've been consistently wrong, but they keep
-          trying. We respect the hustle.
-        </p>
-        <p>
-          The problem is that "the singularity" isn't one thing — it's at least six different
-          concepts that people mash together like a philosophical turducken. This site tracks{" "}
-          <strong>{allPredictions.length} real predictions</strong> across all of them, because if
-          humanity is going to be obsolete, we should at least have good data visualization for it.
-        </p>
+        <div className="flex gap-6 max-sm:flex-col">
+          <div className="flex-shrink-0 flex items-start max-sm:justify-center">
+            <img src="/art/singularity.png" alt="" className="w-64 h-64 object-cover rounded-xl opacity-80 max-md:w-36 max-md:h-36 max-sm:w-64 max-sm:h-64" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p>
+              Short answer: nobody agrees. The <strong>technological singularity</strong> is the
+              hypothetical future point where AI gets smart enough to improve itself faster than we can
+              keep up, and everything after that is... unknowable. It's the point where all our trend
+              lines go vertical and our prediction models start returning <code className="text-[0.8em] bg-[#ffffff08] px-1.5 py-0.5 rounded font-mono">NaN</code>.
+            </p>
+            <p>
+              The term was coined (sort of) by mathematician <strong>John von Neumann</strong> in the
+              1950s, formalized by <strong>Vernor Vinge</strong> in 1993, and turned into a bestseller by{" "}
+              <strong>Ray Kurzweil</strong> in 2005. Since then, hundreds of experts have confidently
+              predicted exactly when this will happen. They've been consistently wrong, but they keep
+              trying. We respect the hustle.
+            </p>
+            <p>
+              The problem is that "the singularity" isn't one thing — it's at least six different
+              concepts that people mash together like a philosophical turducken. This site tracks{" "}
+              <strong>{allPredictions.length} real predictions</strong> across all of them, because if
+              humanity is going to be obsolete, we should at least have good data visualization for it.
+            </p>
+          </div>
+        </div>
       </div>
 
-      <TypeCarousel />
-      <PredictionDrift />
-      <ThreeCamps />
+    </section>
+  );
+}
 
-      {/* Closing section */}
-      <div className="singularity-info-content bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4 mt-8">
-        <h3 className="font-mono text-[0.95rem] font-bold text-(--text) m-0 mb-3">
-          So... Should I Be Worried?
-        </h3>
-        <p>
-          Depends who you ask. The industry insiders building these systems say 3-5 years. The
-          academics studying intelligence say 15-20. The AI safety researchers say it doesn't matter
-          when — what matters is whether we figure out <strong>alignment</strong> before we figure
-          out capability. Geoffrey Hinton gives a 10-20% chance AI kills everyone. Rodney Brooks
-          says 2075, down from 2300 — so even the skeptics are accelerating.
-        </p>
-        <p>
-          The most honest answer: <strong>the predictions themselves are accelerating</strong>.
-          Expert median estimates jumped forward 13 years in a single survey cycle after ChatGPT
-          launched. Metaculus forecasts compressed from "50 years away" to "7 years away" between
-          2020 and 2026. Fully {allPredictions.filter(p => p.prediction_date >= "2025").length} of
-          our {allPredictions.length} predictions were made in 2025 or later — the field is
-          generating opinions faster than it's generating breakthroughs.
-        </p>
-        <p>
-          Either way, that's what the countdown timer is for. Pick a prediction, watch the seconds
-          tick, and decide for yourself whether to feel excited, terrified, or both. We recommend
-          both.
-        </p>
+export function ShouldIBeWorried() {
+  return (
+    <section>
+      <SectionHeader title="So... Should I Be Worried?" subtitle="The honest answer, for what it's worth" />
+
+      <div className="singularity-info-content bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
+        <div className="flex gap-6 max-sm:flex-col">
+          <div className="flex-1 min-w-0">
+            <p>
+              Depends who you ask. The industry insiders building these systems say 3-5 years. The
+              academics studying intelligence say 15-20. The AI safety researchers say it doesn't matter
+              when — what matters is whether we figure out <strong>alignment</strong> before we figure
+              out capability. Geoffrey Hinton gives a 10-20% chance AI kills everyone. Rodney Brooks
+              says 2075, down from 2300 — so even the skeptics are accelerating.
+            </p>
+            <p>
+              The most honest answer: <strong>the predictions themselves are accelerating</strong>.
+              Expert median estimates jumped forward 13 years in a single survey cycle after ChatGPT
+              launched. Metaculus forecasts compressed from "50 years away" to "7 years away" between
+              2020 and 2026. Fully {allPredictions.filter(p => p.prediction_date >= "2025").length} of
+              our {allPredictions.length} predictions were made in 2025 or later — the field is
+              generating opinions faster than it's generating breakthroughs.
+            </p>
+            <p>
+              Either way, that's what the countdown timer is for. Pick a prediction, watch the seconds
+              tick, and decide for yourself whether to feel excited, terrified, or both. We recommend
+              both.
+            </p>
+          </div>
+          <div className="flex-shrink-0 flex items-start max-sm:justify-center">
+            <img src="/art/robot-crystal-ball.png" alt="" className="w-64 h-64 object-cover rounded-xl opacity-80 max-md:w-36 max-md:h-36 max-sm:w-64 max-sm:h-64" />
+          </div>
+        </div>
       </div>
     </section>
   );
