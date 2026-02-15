@@ -446,7 +446,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
               key={type}
               className="flex items-center gap-1 cursor-pointer transition-opacity duration-150"
               style={{ opacity: isActive ? 1 : 0.3 }}
-              onClick={(e) => toggleType(type, e.shiftKey)}
+              onClick={(e) => toggleType(type, e.shiftKey || e.metaKey || e.ctrlKey)}
             >
               <span
                 className="size-2 rounded-full shrink-0 transition-colors duration-150"
@@ -673,15 +673,16 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
               const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best!;
               const cx = xScale(bestFY, svgWidth);
               const cy = yScale(predictionFY) + (overlapOffsets.get(p.id) ?? 0);
-              const color = getTypeColor(p.prediction_type);
+              const active = isTypeActive(p.prediction_type);
+              const color = active ? getTypeColor(p.prediction_type) : "#333340";
               return (
                 <circle
                   cx={cx}
                   cy={cy}
                   r={POINT_RADIUS + 2}
                   fill={color}
-                  opacity={1}
-                  stroke="#fff"
+                  opacity={active ? 1 : 0.3}
+                  stroke={active ? "#fff" : "#555"}
                   strokeWidth={2}
                 />
               );

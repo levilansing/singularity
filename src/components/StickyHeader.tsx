@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Prediction } from "../data/types";
 import { getUrgencyLevel } from "../data/types";
 import { CountdownDigit } from "./CountdownDigit";
 import { MillisecondsDisplayCompact } from "./MillisecondsDisplay";
 import { ShuffleIcon } from "./ShuffleIcon";
+import { ListIcon } from "./ListIcon";
 
 interface StickyHeaderProps {
   prediction: Prediction;
@@ -39,6 +41,7 @@ function computeTimeRemaining(targetDate: string): TimeRemaining {
 }
 
 export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
+  const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const urgency = getUrgencyLevel(prediction.target_date, prediction.has_countdown);
   const [time, setTime] = useState<TimeRemaining | null>(
@@ -88,12 +91,12 @@ export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
             <MillisecondsDisplayCompact />
           </div>
         )}
-        <div className="flex flex-row gap-4">
-          <div className="flex flex-col gap-0.5 max-sm:text-center">
-            <span className="text-[0.7rem] uppercase tracking-[0.1em] text-(--text-muted)">
-              {isPhilosophical ? "Beyond time" : isPast ? "Since" : "Until"} {isPhilosophical ? "" : "the singularity"}
-            </span>
-            <span className="sticky-header-prediction text-[0.85rem] text-(--text-muted)">
+        <div className="flex flex-col gap-0.5 max-sm:text-center">
+          <span className="text-[0.7rem] uppercase tracking-[0.1em] text-(--text-muted)">
+            {isPhilosophical ? "Beyond time" : isPast ? "Since" : "Until"} {isPhilosophical ? "" : "the singularity"}
+          </span>
+          <span className="sticky-header-prediction text-[0.85rem] text-(--text-muted) flex items-center gap-2">
+            <span>
               {isPhilosophical ? (
                 <strong>{prediction.predictor_name}</strong>
               ) : (
@@ -105,16 +108,23 @@ export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
                 </>
               )}
             </span>
-          </div>
-          {onRandom && (
+            {onRandom && (
+              <button
+                onClick={onRandom}
+                className="group relative p-1 rounded-md text-(--text-dim) hover:text-(--text) hover:bg-[#ffffff0a] transition-colors cursor-pointer"
+              >
+                <ShuffleIcon size={16} />
+                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-1 text-[0.65rem] bg-[#1a1a2e] text-(--text-muted) rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">Shuffle</span>
+              </button>
+            )}
             <button
-              onClick={onRandom}
-              title="Random prediction"
-              className="ml-auto p-1.5 rounded-md text-(--text-dim) hover:text-(--text) hover:bg-[#ffffff0a] transition-colors cursor-pointer max-sm:ml-0"
+              onClick={() => navigate("/browse")}
+              className="group relative p-1 rounded-md text-(--text-dim) hover:text-(--text) hover:bg-[#ffffff0a] transition-colors cursor-pointer"
             >
-              <ShuffleIcon size={18} />
+              <ListIcon size={16} />
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-1 text-[0.65rem] bg-[#1a1a2e] text-(--text-muted) rounded whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">Browse all</span>
             </button>
-          )}
+          </span>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import predictions from "../data/predictions.json";
 import type { Prediction } from "../data/types";
 import { AgiIcon, SingularityIcon, SuperintelligenceIcon, IntelligenceExplosionIcon, TransformativeAiIcon, HlmiIcon } from "./TypeIcons";
@@ -383,7 +383,7 @@ export function TypeCarousel() {
    Prediction Drift scatter plot
    ──────────────────────────────────────────── */
 
-import { TYPE_HEX, TYPE_LEGEND_ORDER as LEGEND_ORDER, getTypeHex } from "../data/colors";
+import { TYPE_HEX, TYPE_LEGEND_ORDER as LEGEND_ORDER, getTypeHex, canonicalType } from "../data/colors";
 
 interface ScatterPoint {
   madeYear: number;
@@ -393,58 +393,141 @@ interface ScatterPoint {
   type: string;
 }
 
-function computeScatterData(): { points: ScatterPoint[]; medians: { year: number; median: number }[] } {
+/** True median: averages the two middle values for even-length arrays */
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = sorted.length / 2;
+  if (sorted.length % 2 !== 0) return sorted[Math.floor(mid)]!;
+  return (sorted[mid - 1]! + sorted[mid]!) / 2;
+}
+
+/** Lower quartile (Q1) */
+function q1(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  return median(sorted.slice(0, Math.floor(sorted.length / 2)));
+}
+
+/** Upper quartile (Q3) */
+function q3(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  return median(sorted.slice(Math.ceil(sorted.length / 2)));
+}
+
+interface MedianPoint {
+  year: number;
+  median: number;
+  q1: number;
+  q3: number;
+  count: number;
+}
+
+function computeScatterData(filterType: string | null): { points: ScatterPoint[]; medians: MedianPoint[] } {
   const points: ScatterPoint[] = [];
+  // Use unclamped values for median computation
   const byMadeYear: Record<number, number[]> = {};
 
   for (const p of allPredictions) {
     if (!p.predicted_year_best || !p.prediction_date) continue;
     const madeYear = parseInt(p.prediction_date.slice(0, 4), 10);
-    // Focus on 1993+ where we have meaningful data
     if (madeYear < 1993) continue;
-    // Clamp to chart range
-    const predictedYear = Math.max(2025, Math.min(p.predicted_year_best, 2080));
+
+    const predictedYear = p.predicted_year_best;
+    const displayYear = Math.max(2025, Math.min(predictedYear, 2080));
+    const pType = canonicalType(p.prediction_type);
 
     points.push({
       madeYear,
-      predictedYear,
+      predictedYear: displayYear,
       color: getTypeHex(p.prediction_type),
       name: p.predictor_name,
       type: p.prediction_type,
     });
 
-    if (!byMadeYear[madeYear]) byMadeYear[madeYear] = [];
-    byMadeYear[madeYear].push(predictedYear);
+    // Only include matching type in median computation
+    if (filterType === null || pType === filterType) {
+      if (!byMadeYear[madeYear]) byMadeYear[madeYear] = [];
+      byMadeYear[madeYear].push(predictedYear);
+    }
   }
 
-  // Compute rolling medians: group into buckets for smoother line
-  // Buckets: ...-2019, 2020-2022, 2023, 2024, 2025, 2026
-  const buckets: [number, number[]][] = [];
-  const pre2020: number[] = [];
-  const y2020_22: number[] = [];
+  // Adaptive rolling window: for each year with data, gather nearby years
+  // until we have at least minN points. Recent years (2023+) use tighter windows.
+  const allYears = Object.keys(byMadeYear).map(Number).sort((a, b) => a - b);
+  const minN = 5;
+  const results: MedianPoint[] = [];
 
-  for (const [y, vals] of Object.entries(byMadeYear)) {
-    const year = Number(y);
-    if (year < 2020) pre2020.push(...vals);
-    else if (year <= 2022) y2020_22.push(...vals);
+  for (const centerYear of allYears) {
+    const centerVals = byMadeYear[centerYear]!;
+
+    // For recent years with enough data, use them standalone
+    if (centerYear >= 2023 && centerVals.length >= minN) {
+      results.push({
+        year: centerYear,
+        median: median(centerVals),
+        q1: q1(centerVals),
+        q3: q3(centerVals),
+        count: centerVals.length,
+      });
+      continue;
+    }
+
+    // Otherwise, expand window symmetrically until we have enough points
+    let pooled = [...centerVals];
+    let radius = 0;
+    while (pooled.length < minN && radius < 15) {
+      radius++;
+      for (const yr of allYears) {
+        if (yr !== centerYear && Math.abs(yr - centerYear) === radius) {
+          pooled.push(...byMadeYear[yr]!);
+        }
+      }
+    }
+
+    // Skip years where even a wide window can't gather enough data
+    if (pooled.length < 3) continue;
+
+    results.push({
+      year: centerYear,
+      median: median(pooled),
+      q1: q1(pooled),
+      q3: q3(pooled),
+      count: pooled.length,
+    });
   }
 
-  if (pre2020.length) buckets.push([2008, pre2020]); // visual center for pre-2020
-  if (y2020_22.length) buckets.push([2021, y2020_22]);
-  for (const yr of [2023, 2024, 2025, 2026]) {
-    if (byMadeYear[yr]?.length) buckets.push([yr, byMadeYear[yr]]);
+  // Deduplicate: for years that got rolled into their neighbors' windows,
+  // keep only every Nth point in the sparse early region to avoid clutter
+  const dedupedMedians: MedianPoint[] = [];
+  let lastKeptYear = -Infinity;
+  for (const pt of results) {
+    // Recent years: keep every year
+    if (pt.year >= 2020) {
+      dedupedMedians.push(pt);
+      lastKeptYear = pt.year;
+      continue;
+    }
+    // Sparse early region: keep points at least 3 years apart
+    if (pt.year - lastKeptYear >= 3) {
+      dedupedMedians.push(pt);
+      lastKeptYear = pt.year;
+    }
   }
 
-  const medians = buckets.map(([year, vals]) => {
-    const sorted = [...vals].sort((a, b) => a - b);
-    return { year, median: sorted[Math.floor(sorted.length / 2)]! };
-  });
+  // Clamp median/quartile values to chart range for display
+  for (const m of dedupedMedians) {
+    m.median = Math.max(2025, Math.min(m.median, 2080));
+    m.q1 = Math.max(2025, Math.min(m.q1, 2080));
+    m.q3 = Math.max(2025, Math.min(m.q3, 2080));
+  }
 
-  return { points, medians };
+  return { points, medians: dedupedMedians };
 }
 
 export function PredictionDrift() {
-  const { points, medians } = useMemo(computeScatterData, []);
+  const [filterType, setFilterType] = useState<string | null>(null);
+  const { points, medians } = useMemo(() => computeScatterData(filterType), [filterType]);
+  const [hoveredMedian, setHoveredMedian] = useState<{ d: MedianPoint; x: number; y: number } | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   // Chart bounds
   const xMin = 1993;
@@ -465,25 +548,77 @@ export function PredictionDrift() {
 
   const gridYears = [2030, 2040, 2050, 2060, 2070, 2080];
   const gridXYears = [1995, 2000, 2005, 2010, 2015, 2020, 2025];
+  const medianColor = filterType ? (TYPE_HEX[filterType] ?? "#8b5cf6") : "#8b5cf6";
+
+  const MEDIAN_TIP_W = 300;
+  const MEDIAN_TIP_H = 48;
+
+  const handleMedianEnter = useCallback((d: MedianPoint, e: React.MouseEvent<SVGCircleElement>) => {
+    const container = chartRef.current;
+    const circle = e.currentTarget;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    const circleRect = circle.getBoundingClientRect();
+    const dotCenterX = circleRect.left + circleRect.width / 2 - containerRect.left;
+    const dotTopY = circleRect.top - containerRect.top;
+
+    // Center horizontally above dot, clamp to container edges
+    let x = dotCenterX - MEDIAN_TIP_W / 2;
+    if (x + MEDIAN_TIP_W > containerRect.width - 4) {
+      x = containerRect.width - MEDIAN_TIP_W - 4;
+    }
+    if (x < 4) x = 4;
+
+    // Place above dot, flip below if not enough room
+    let y = dotTopY - MEDIAN_TIP_H - 8;
+    if (y < 4) y = dotTopY + circleRect.height + 8;
+
+    setHoveredMedian({ d, x, y });
+  }, []);
+
+  const handleMedianLeave = useCallback(() => {
+    setHoveredMedian(null);
+  }, []);
 
   return (
     <section>
       <SectionHeader title="The Predictions Are Accelerating" />
 
-      <div className="bg-(--bg-card) border border-[#ffffff08] rounded-xl p-5 max-sm:p-3">
+      <div ref={chartRef} className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-5 max-sm:p-3">
         <div className="flex max-md:flex-col">
-          {/* Legend — side on large screens, top on small */}
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mb-3 md:flex-col md:mb-0 md:mr-4 md:justify-start md:gap-y-2 md:pt-2">
-            {LEGEND_ORDER.map((type) => (
-              <span key={type} className="flex items-center gap-1 text-[0.6rem] font-mono whitespace-nowrap" style={{ color: TYPE_HEX[type] }}>
-                <span className="inline-block w-1.5 h-1.5 rounded-full shrink-0" style={{ background: TYPE_HEX[type] }} />
-                {type}
+          {/* Legend — fixed-width side column on large screens, horizontal wrap on small */}
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mb-3 md:flex-col md:mb-0 md:mr-4 md:justify-between md:gap-y-1.5 md:pt-2 md:w-40 md:shrink-0">
+            <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 md:flex-col md:gap-y-1.5">
+              {LEGEND_ORDER.map((type) => {
+                const isActive = filterType === null || filterType === type;
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setFilterType(filterType === type ? null : type)}
+                    className="flex items-center gap-1 text-[0.6rem] font-mono whitespace-nowrap cursor-pointer transition-opacity duration-150"
+                    style={{ color: TYPE_HEX[type], opacity: isActive ? 1 : 0.3 }}
+                  >
+                    <span className="inline-block w-1.5 h-1.5 rounded-full shrink-0" style={{ background: TYPE_HEX[type] }} />
+                    {type}
+                  </button>
+                );
+              })}
+              {/* Divider */}
+              <div className="w-full h-px bg-[#ffffff0a] my-0.5 max-md:hidden" />
+              <div className="hidden max-md:block w-px h-3 bg-[#ffffff0a] mx-1 self-center" />
+              <span className="flex items-center gap-1 text-[0.6rem] font-mono text-(--text-dim) whitespace-nowrap">
+                <span className="inline-block w-3 h-0.5 rounded shrink-0" style={{ background: medianColor }} />
+                median
               </span>
-            ))}
-            <span className="flex items-center gap-1 text-[0.6rem] font-mono text-(--text-dim) whitespace-nowrap">
-              <span className="inline-block w-3 h-0.5 rounded shrink-0" style={{ background: "#8b5cf6" }} />
-              median
-            </span>
+              <span className="flex items-center gap-1 text-[0.6rem] font-mono text-(--text-dim) whitespace-nowrap">
+                <span className="inline-block w-3 h-2 rounded-sm shrink-0" style={{ background: medianColor, opacity: 0.25 }} />
+                IQR
+              </span>
+            </div>
+            {/* Methodology blurb — bottom of legend column on desktop */}
+            <p className="hidden md:block text-[0.55rem] text-(--text-dim) font-mono leading-relaxed m-0 opacity-60">
+              Median &amp; IQR per year (min 5 predictions). Sparse years use an adaptive rolling window. Click a type to isolate.
+            </p>
           </div>
 
           <svg
@@ -542,28 +677,44 @@ export function PredictionDrift() {
           <defs>
             <filter id="median-glow" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="0" stdDeviation="1.2" floodColor="#000000" floodOpacity="0.8" />
-              <feDropShadow dx="0" dy="0" stdDeviation="0.4" floodColor="#8b5cf6" floodOpacity="0.5" />
+              <feDropShadow dx="0" dy="0" stdDeviation="0.4" floodColor={medianColor} floodOpacity="0.5" />
             </filter>
           </defs>
 
-          {/* Scatter dots */}
-          {points.map((pt, i) => (
-            <circle
-              key={i}
-              cx={xScale(pt.madeYear)}
-              cy={yScale(pt.predictedYear)}
-              r="0.7"
-              fill={pt.color}
-              opacity={0.25}
+          {/* IQR confidence band (Q1–Q3) */}
+          {medians.length > 1 && (
+            <polygon
+              points={
+                medians.map((d) => `${xScale(d.year)},${yScale(d.q3)}`).join(" ") +
+                " " +
+                [...medians].reverse().map((d) => `${xScale(d.year)},${yScale(d.q1)}`).join(" ")
+              }
+              fill={medianColor}
+              opacity={0.08}
             />
-          ))}
+          )}
+
+          {/* Scatter dots */}
+          {points.map((pt, i) => {
+            const dimmed = filterType !== null && canonicalType(pt.type) !== filterType;
+            return (
+              <circle
+                key={i}
+                cx={xScale(pt.madeYear)}
+                cy={yScale(pt.predictedYear)}
+                r="0.7"
+                fill={dimmed ? "#333340" : pt.color}
+                opacity={dimmed ? 0.08 : 0.3}
+              />
+            );
+          })}
 
           {/* Median trend line with drop shadows */}
           {medians.length > 1 && (
             <polyline
               points={medians.map((d) => `${xScale(d.year)},${yScale(d.median)}`).join(" ")}
               fill="none"
-              stroke="#8b5cf6"
+              stroke={medianColor}
               strokeWidth="0.6"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -577,9 +728,24 @@ export function PredictionDrift() {
               key={`med-${i}`}
               cx={xScale(d.year)}
               cy={yScale(d.median)}
-              r="0.9"
-              fill="#8b5cf6"
+              r={hoveredMedian?.d === d ? 1.3 : 0.9}
+              fill={medianColor}
               filter="url(#median-glow)"
+              style={{ transition: "r 0.15s ease" }}
+            />
+          ))}
+
+          {/* Median hit areas */}
+          {medians.map((d, i) => (
+            <circle
+              key={`medhit-${i}`}
+              cx={xScale(d.year)}
+              cy={yScale(d.median)}
+              r="2.5"
+              fill="transparent"
+              style={{ cursor: "default" }}
+              onMouseEnter={(e) => handleMedianEnter(d, e)}
+              onMouseLeave={handleMedianLeave}
             />
           ))}
 
@@ -597,6 +763,40 @@ export function PredictionDrift() {
         </svg>
         </div>
 
+        {/* Median tooltip */}
+        {hoveredMedian && (() => {
+          const { d, x, y } = hoveredMedian;
+          const medianRounded = Math.round(d.median);
+          const text = filterType
+            ? `${d.year} predictions suggest ${filterType} by ~${medianRounded}`
+            : `${d.year} median prediction: ~${medianRounded}`;
+          const sub = `median of ${d.count} predictions (IQR: ${Math.round(d.q1)}–${Math.round(d.q3)})`;
+          return (
+            <div
+              className="absolute z-50 pointer-events-none rounded-lg border px-3 py-2 shadow-xl opacity-90"
+              style={{
+                top: y - 10,
+                left: x,
+                width: MEDIAN_TIP_W,
+                background: "rgba(10, 10, 15, 0.95)",
+                borderColor: `${medianColor}30`,
+                boxShadow: `0 8px 24px #00000060, 0 0 12px ${medianColor}15`,
+              }}
+            >
+              <div className="text-[0.7rem] font-mono font-medium leading-snug" style={{ color: medianColor }}>
+                {text}
+              </div>
+              <div className="text-[0.6rem] font-mono text-(--text-dim) mt-0.5">
+                {sub}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Methodology blurb — under graph on small screens only */}
+        <p className="md:hidden text-[0.55rem] text-(--text-dim) font-mono mt-2 mb-0 leading-relaxed opacity-60">
+          Median &amp; IQR per year (min 5 predictions). Sparse years use an adaptive rolling window. Click a type to isolate.
+        </p>
       </div>
     </section>
   );

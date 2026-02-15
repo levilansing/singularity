@@ -153,7 +153,7 @@ export function BrowseAll({ predictions }: BrowseAllProps) {
               colorClass={TYPE_BADGE[t]}
               active={typeFilter.has(t)}
               groupActive={typeFilter.size > 0}
-              onClick={(e) => toggleFilter(typeFilter, t, setTypeFilter, e.shiftKey)}
+              onClick={(e) => toggleFilter(typeFilter, t, setTypeFilter, e.shiftKey || e.metaKey || e.ctrlKey)}
             />
           ))}
         </div>
@@ -166,7 +166,7 @@ export function BrowseAll({ predictions }: BrowseAllProps) {
               colorClass={CONFIDENCE_BADGE[c]}
               active={confidenceFilter.has(c)}
               groupActive={confidenceFilter.size > 0}
-              onClick={(e) => toggleFilter(confidenceFilter, c, setConfidenceFilter, e.shiftKey)}
+              onClick={(e) => toggleFilter(confidenceFilter, c, setConfidenceFilter, e.shiftKey || e.metaKey || e.ctrlKey)}
             />
           ))}
         </div>

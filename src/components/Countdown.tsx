@@ -7,6 +7,7 @@ import { getCommentary } from "../data/commentary";
 import { CountdownDigit } from "./CountdownDigit";
 import { MillisecondsDisplay } from "./MillisecondsDisplay";
 import { ShuffleIcon } from "./ShuffleIcon";
+import { ListIcon } from "./ListIcon";
 
 interface CountdownProps {
   prediction: Prediction;
@@ -136,8 +137,8 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
             Shuffle
           </button>
         )}
-        <Link to="/browse" className="hover:text-(--text-muted) transition-colors no-underline text-inherit">
-          Browse all predictions →
+        <Link to="/browse" className="hover:text-(--text-muted) transition-colors no-underline text-inherit inline-flex items-center gap-1.5">
+          <ListIcon size={14} /> Browse all predictions
         </Link>
       </div>
     </div>
