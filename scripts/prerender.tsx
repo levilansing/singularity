@@ -159,11 +159,5 @@ for (const p of allPredictions) {
   count++;
 }
 
-// ---------------------------------------------------------------------------
-// 5. Write _redirects for Cloudflare Pages SPA fallback
-// ---------------------------------------------------------------------------
-const redirects = `/* /index.html 200\n`;
-await Bun.write(path.join(outdir, "_redirects"), redirects);
-
 const elapsed = (performance.now() - start).toFixed(0);
 console.log(`🎨 Pre-rendered ${count} pages in ${elapsed}ms`);
