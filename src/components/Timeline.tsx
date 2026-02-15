@@ -28,10 +28,11 @@ function getTypeColor(type: string): string {
 
 /** Pick a nice tick step for a given year range */
 function tickStep(range: number): number {
-  if (range <= 20) return 2;
-  if (range <= 50) return 5;
-  if (range <= 100) return 10;
-  if (range <= 200) return 20;
+  if (range <= 20) return 1;
+  if (range <= 40) return 2;
+  if (range <= 80) return 5;
+  if (range <= 160) return 10;
+  if (range <= 320) return 20;
   return 50;
 }
 
@@ -486,6 +487,16 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
 
     // Touch: need 2 fingers to start pan/pinch
     if (e.pointerType === "touch") {
+      // Clear stale pointers — if we have more than 2 after adding this one,
+      // something wasn't cleaned up. Keep only the two most recent.
+      if (activePointers.current.size > 2) {
+        const entries = Array.from(activePointers.current.entries());
+        activePointers.current.clear();
+        for (const [id, pos] of entries.slice(-2)) {
+          activePointers.current.set(id, pos);
+        }
+      }
+
       if (activePointers.current.size === 2) {
         // Start two-finger gesture
         isPanning.current = true;
@@ -513,12 +524,14 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     const svg = svgRef.current;
     if (!svg) return;
 
-    const rect = svg.getBoundingClientRect();
-    const scaleX = svgWidth / rect.width;
-    const scaleY = svgHeight / rect.height;
+    // Touch: only pan/zoom with two fingers, never with one
+    if (e.pointerType === "touch") {
+      if (activePointers.current.size < 2) return;
 
-    if (e.pointerType === "touch" && activePointers.current.size >= 2) {
-      // Two-finger: unified pan + pinch zoom anchored at current midpoint
+      const rect = svg.getBoundingClientRect();
+      const scaleX = svgWidth / rect.width;
+      const scaleY = svgHeight / rect.height;
+
       const center = getTwoFingerCenter()!;
       const dist = getTwoFingerDist();
       const ps = pinchStart.current;
@@ -556,6 +569,9 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     }
 
     // Mouse pan
+    const rect = svg.getBoundingClientRect();
+    const scaleX = svgWidth / rect.width;
+    const scaleY = svgHeight / rect.height;
     const dx = (e.clientX - panStart.current.x) * scaleX;
     const dy = (e.clientY - panStart.current.y) * scaleY;
 
@@ -574,9 +590,14 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     activePointers.current.delete(e.pointerId);
-    if (activePointers.current.size < 2) {
+    // End gesture as soon as we drop below 2 fingers (touch) or 1 (mouse)
+    if (e.pointerType === "touch" || activePointers.current.size === 0) {
       isPanning.current = false;
       pinchStart.current = null;
+    }
+    // Clear all touch pointers when last finger lifts to avoid stale entries
+    if (e.pointerType === "touch" && activePointers.current.size === 0) {
+      activePointers.current.clear();
     }
   }, []);
 
@@ -641,14 +662,22 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           />
 
           {/* X-axis grid lines & labels */}
-          {xTicks.map((year) => {
+          {xTicks.map((year, i) => {
             const x = xScale(year, svgWidth);
+            // Estimate label width (~7px per char at fontSize 11) + min gap
+            const labelWidth = String(year).length * 7 + 12;
+            const tickSpacingPx = xTicks.length > 1
+              ? Math.abs(xScale(xTicks[1]!, svgWidth) - xScale(xTicks[0]!, svgWidth))
+              : Infinity;
+            const showLabel = tickSpacingPx >= labelWidth || i % 2 === 0;
             return (
               <g key={`x-${year}`}>
                 <line x1={x} y1={PADDING_TOP} x2={x} y2={PADDING_TOP + chartHeight} stroke="#ffffff10" strokeWidth={1} clipPath="url(#chart-clip)" />
-                <text x={x} y={PADDING_TOP + chartHeight + 20} fill="#ffffff50" fontSize={11} textAnchor="middle" fontFamily="system-ui">
-                  {year}
-                </text>
+                {showLabel && (
+                  <text x={x} y={PADDING_TOP + chartHeight + 20} fill="#ffffff50" fontSize={11} textAnchor="middle" fontFamily="system-ui">
+                    {year}
+                  </text>
+                )}
               </g>
             );
           })}
@@ -737,20 +766,15 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
             );
           })()}
 
-          {/* Layer 1: Range lines (behind everything) */}
+          {/* Layer 1a: Inactive range lines (filtered-out, behind everything) */}
           <g clipPath="url(#chart-clip)">
             {sortedPredictions.map((p) => {
               if (visibleIdSet !== null && !visibleIdSet.has(p.id)) return null;
               const predictionFY = dateToFractionalYear(p.prediction_date);
               if (isNaN(predictionFY)) return null;
               if (!p.predicted_date_low || !p.predicted_date_high) return null;
-              const cyBase = yScale(predictionFY);
-              const cy = cyBase + (overlapOffsets.get(p.id) ?? 0);
-              const active = isTypeActive(p.prediction_type);
-              const color = active ? getTypeColor(p.prediction_type) : "#333340";
-              const isSelected = p.id === selectedId;
-              const opacity = active ? (isSelected ? 0.5 : 0.3) : 0.1;
-
+              if (isTypeActive(p.prediction_type)) return null;
+              const cy = yScale(predictionFY) + (overlapOffsets.get(p.id) ?? 0);
               return (
                 <line
                   key={`range-${p.id}`}
@@ -758,53 +782,83 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
                   y1={cy}
                   x2={xScale(dateToFractionalYear(p.predicted_date_high), svgWidth)}
                   y2={cy}
-                  stroke={color}
-                  strokeWidth={isSelected ? 3 : 2}
-                  opacity={opacity}
+                  stroke="#333340"
+                  strokeWidth={2}
+                  opacity={0.1}
                   strokeLinecap="round"
                 />
               );
             })}
           </g>
 
-          {/* Layer 2: Dots (sorted so nearest-date renders last = on top) */}
+          {/* Layer 1b: Inactive dots (filtered-out, behind active) */}
           <g clipPath="url(#chart-clip)">
             {sortedPredictions.map((p) => {
               if (visibleIdSet !== null && !visibleIdSet.has(p.id)) return null;
               const predictionFY = dateToFractionalYear(p.prediction_date);
               if (isNaN(predictionFY)) return null;
+              if (isTypeActive(p.prediction_type)) return null;
               const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best!;
               const cx = xScale(bestFY, svgWidth);
-              const cyBase = yScale(predictionFY);
-              const cy = cyBase + (overlapOffsets.get(p.id) ?? 0);
-              const active = isTypeActive(p.prediction_type);
-              const color = active ? getTypeColor(p.prediction_type) : "#333340";
-              const isSelected = p.id === selectedId;
-              const isHovered = p.id === hoveredId;
-
-              // Selected dot rendered separately on top
-              if (isSelected) return null;
-
-              if (!active) {
-                return (
-                  <circle
-                    key={`dot-${p.id}`}
-                    cx={cx}
-                    cy={cy}
-                    r={POINT_RADIUS}
-                    fill={color}
-                    opacity={0.15}
-                  />
-                );
-              }
-
+              const cy = yScale(predictionFY) + (overlapOffsets.get(p.id) ?? 0);
               return (
                 <circle
                   key={`dot-${p.id}`}
                   cx={cx}
                   cy={cy}
                   r={POINT_RADIUS}
-                  fill={color}
+                  fill="#333340"
+                  opacity={0.15}
+                />
+              );
+            })}
+          </g>
+
+          {/* Layer 2a: Active range lines */}
+          <g clipPath="url(#chart-clip)">
+            {sortedPredictions.map((p) => {
+              if (visibleIdSet !== null && !visibleIdSet.has(p.id)) return null;
+              const predictionFY = dateToFractionalYear(p.prediction_date);
+              if (isNaN(predictionFY)) return null;
+              if (!p.predicted_date_low || !p.predicted_date_high) return null;
+              if (!isTypeActive(p.prediction_type)) return null;
+              const cy = yScale(predictionFY) + (overlapOffsets.get(p.id) ?? 0);
+              const isSelected = p.id === selectedId;
+              return (
+                <line
+                  key={`range-${p.id}`}
+                  x1={xScale(dateToFractionalYear(p.predicted_date_low), svgWidth)}
+                  y1={cy}
+                  x2={xScale(dateToFractionalYear(p.predicted_date_high), svgWidth)}
+                  y2={cy}
+                  stroke={getTypeColor(p.prediction_type)}
+                  strokeWidth={isSelected ? 3 : 2}
+                  opacity={isSelected ? 0.5 : 0.3}
+                  strokeLinecap="round"
+                />
+              );
+            })}
+          </g>
+
+          {/* Layer 2b: Active dots (on top of inactive) */}
+          <g clipPath="url(#chart-clip)">
+            {sortedPredictions.map((p) => {
+              if (visibleIdSet !== null && !visibleIdSet.has(p.id)) return null;
+              const predictionFY = dateToFractionalYear(p.prediction_date);
+              if (isNaN(predictionFY)) return null;
+              if (!isTypeActive(p.prediction_type)) return null;
+              if (p.id === selectedId) return null;
+              const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best!;
+              const cx = xScale(bestFY, svgWidth);
+              const cy = yScale(predictionFY) + (overlapOffsets.get(p.id) ?? 0);
+              const isHovered = p.id === hoveredId;
+              return (
+                <circle
+                  key={`dot-${p.id}`}
+                  cx={cx}
+                  cy={cy}
+                  r={POINT_RADIUS}
+                  fill={getTypeColor(p.prediction_type)}
                   opacity={isHovered ? 1 : 0.7}
                   stroke={isHovered ? "#fff" : "none"}
                   strokeWidth={isHovered ? 1.5 : 0}
@@ -882,7 +936,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
 
       <div className="flex items-center justify-center gap-3 mt-1.5">
         <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none hidden sm:inline">Scroll to zoom · Drag to pan · Double-click to reset · Click legend to filter</span>
-        <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none sm:hidden">Pinch to zoom · Two fingers to pan · Double-tap to reset</span>
+        <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none sm:hidden">Two fingers to pan & zoom · Double-tap to reset</span>
         <button
           className="text-[0.65rem] text-(--text-dim) opacity-50 hover:opacity-80 cursor-pointer transition-opacity select-none"
           onClick={startAnimation}
