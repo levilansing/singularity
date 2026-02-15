@@ -203,7 +203,7 @@ function CrowdEstimateBadge({ result }: { result: WeightedResult }) {
 
   return (
     <div
-      className="relative"
+      className="relative z-10"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -224,7 +224,7 @@ function CrowdEstimateBadge({ result }: { result: WeightedResult }) {
         <div
           className="absolute right-0 top-full mt-2 z-50 w-64 rounded-lg border p-3 text-[0.72rem] font-mono leading-relaxed shadow-xl"
           style={{
-            background: "var(--bg-card)",
+            background: "var(--bg-card-solid)",
             borderColor: `${color}30`,
             boxShadow: `0 8px 32px #00000060, 0 0 16px ${color}10`,
           }}

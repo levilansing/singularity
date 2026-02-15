@@ -70,7 +70,7 @@ function clampViewport(
   return { xMin, xMax, yMin, yMax };
 }
 
-const TOOLTIP_WIDTH = 280;
+const TOOLTIP_WIDTH = 320;
 const TOOLTIP_HEIGHT_ESTIMATE = 120;
 
 export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {

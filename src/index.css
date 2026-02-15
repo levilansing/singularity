@@ -8,6 +8,7 @@
   :root {
     --bg: #0a0a0f;
     --bg-card: rgba(255, 255, 255, 0.04);
+    --bg-card-solid: #12121a;
     --bg-card-hover: rgba(255, 255, 255, 0.08);
     --text: rgba(255, 255, 255, 0.88);
     --text-muted: rgba(255, 255, 255, 0.60);

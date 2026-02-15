@@ -24,6 +24,7 @@
     "@genwave/svgmaker-mcp": "^0.3.1",
     "@types/bun": "latest",
     "@types/react": "^19",
-    "@types/react-dom": "^19"
+    "@types/react-dom": "^19",
+    "wrangler": "^4.65.0"
   }
 }
