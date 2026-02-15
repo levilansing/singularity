@@ -26,14 +26,10 @@ export function MillisecondsDisplay({ hasYears = false }: { hasYears?: boolean }
       <div className="countdown-digit-value countdown-ms-value font-mono text-[clamp(2rem,6vw,4rem)] font-bold leading-none text-(--text) tabular-nums">
         <Roller />
       </div>
-      {hasYears ? (
-        <div className="text-[0.7rem] uppercase tracking-widest text-(--text-muted) mt-1.5">
-          <span className="max-sm:hidden">Milliseconds</span>
-          <span className="sm:hidden">MS</span>
-        </div>
-      ) : (
-        <div className="text-[0.7rem] uppercase tracking-widest text-(--text-muted) mt-1.5">Milliseconds</div>
-      )}
+      <div className="text-[0.7rem] uppercase tracking-widest text-(--text-muted) mt-1.5">
+        <span className="max-sm:hidden">Milliseconds</span>
+        <span className="sm:hidden">MS</span>
+      </div>
     </div>
   );
 }

@@ -285,10 +285,10 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     const groups = new Map<string, number[]>();
     for (const p of timelinePredictions) {
       if (p.predicted_year_best === null) continue;
-      // Round to nearest quarter-year for overlap grouping
-      const predFY = dateToFractionalYear(p.prediction_date);
-      const bestFY = p.predicted_date_best ? dateToFractionalYear(p.predicted_date_best) : p.predicted_year_best;
-      const key = `${Math.round(bestFY * 4) / 4}:${Math.round(predFY * 4) / 4}`;
+      // Only offset points that share the exact same day
+      const predKey = p.prediction_date;
+      const bestKey = p.predicted_date_best ?? String(p.predicted_year_best);
+      const key = `${bestKey}:${predKey}`;
       const group = groups.get(key);
       if (group) group.push(p.id);
       else groups.set(key, [p.id]);

@@ -94,12 +94,11 @@ body.urgency-philosophical {
 .countdown-container.urgency-imminent {
   background: linear-gradient(135deg, #1a0a08 0%, #200e0a 100%);
   border-color: #ff442a20;
-  animation: imminent-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 60px #ff000025, inset 0 0 60px #ff000010;
 }
 .urgency-imminent .countdown-digit-value {
   color: #ff6644;
   text-shadow: 0 0 15px #ff440050;
-  animation: imminent-pulse 2s ease-in-out infinite;
 }
 .urgency-imminent .countdown-separator {
   color: #ff664480;
@@ -116,7 +115,6 @@ body.urgency-philosophical {
 .urgency-near .countdown-digit-value {
   color: #fbbf24;
   text-shadow: 0 0 10px #fbbf2430;
-  animation: near-pulse 3s ease-in-out infinite;
 }
 .urgency-near .countdown-separator {
   color: #fbbf2480;
@@ -179,20 +177,12 @@ body.urgency-philosophical {
    ANIMATIONS
    ═══════════════════════════════════════════════════════════ */
 
-@keyframes imminent-pulse {
-  0%, 100% { box-shadow: 0 0 30px #ff000010, inset 0 0 30px #ff000005; }
-  50% { box-shadow: 0 0 60px #ff000025, inset 0 0 60px #ff000010; }
-}
 
-@keyframes imminent-shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-1px); }
-  75% { transform: translateX(1px); }
-}
-
-@keyframes near-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
+/* ── Skip rendering for off-screen header & countdown ── */
+.animated-gradient-text,
+.countdown-container {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none;
 }
 
 /* ── Animated gradient header ── */
@@ -257,10 +247,11 @@ body.urgency-philosophical {
 }
 
 .ms-roller {
+  --digit-h: 1em;
   display: inline-flex;
   align-items: flex-start;
-  height: 1em;
-  line-height: 1;
+  vertical-align: top;
+  height: var(--digit-h);
   overflow: hidden;
   contain: content;
 }
@@ -274,10 +265,12 @@ body.urgency-philosophical {
 }
 
 .ms-strip > span {
-  display: block;
-  height: 1em;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--digit-h);
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .ms-hundreds { animation-duration: 1s; }
@@ -285,7 +278,8 @@ body.urgency-philosophical {
 .ms-ones { animation-duration: 0.01s; }
 
 @keyframes ms-scroll {
-  to { transform: translateY(-100%); }
+  /* 10 digits × var(--digit-h) each; em units avoid % calc issues */
+  to { transform: translateY(calc(var(--digit-h) * -10)); }
 }
 
 /* ── Timeline row hover ── */
@@ -361,9 +355,13 @@ body.urgency-philosophical {
    RESPONSIVE (urgency-scoped compact overrides)
    ═══════════════════════════════════════════════════════════ */
 
-/* Sticky header visibility */
+/* Sticky header visibility — pause animations when off-screen */
+.sticky-header {
+  content-visibility: hidden;
+}
 .sticky-header.visible {
   translate: 0 0;
+  content-visibility: visible;
 }
 
 /* Smaller digits when years are shown */
