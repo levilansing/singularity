@@ -68,7 +68,7 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
   return (
     <div className={`countdown-container text-center py-10 px-4 mb-12 rounded-xl bg-(--bg-card) border border-[#ffffff08] transition-all duration-500 max-sm:py-6 max-sm:px-3 urgency-${urgency}`}>
 
-      <div className="countdown-prediction-year text-[0.95rem] text-(--text-muted) mb-8">
+      <div className="countdown-prediction-year text-[0.95rem] text-(--text-muted) mb-8 min-h-[2lh]">
         {(() => {
           const year = prediction.prediction_date ? new Date(prediction.prediction_date).getFullYear() : null;
           if (isPhilosophical) {

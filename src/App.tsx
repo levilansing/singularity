@@ -97,8 +97,8 @@ function PredictionPage() {
     <>
       {selected && <StickyHeader prediction={selected} onRandom={handleRandom} />}
       <header className="text-center pt-14 mb-12 max-sm:pt-8 max-sm:mb-8">
-        <h1 className="font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 tracking-tight text-center bg-linear-to-r from-[#e879a8] via-[#c084fc] to-[#67e8f9] bg-clip-text text-transparent">The Singularity is Coming</h1>
-        <p className="text-[#c084fcaa] text-[0.95rem] m-0 italic text-center mt-1">Tracking humanity's most confident guesses about its own obsolescence</p>
+        <h1 className="font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 tracking-tight text-center bg-linear-to-r from-[#e879a8] via-[#c084fc] to-[#67e8f9] bg-clip-text text-transparent">The Singularity<br className="sm:hidden" /> is Coming</h1>
+        <p className="text-[#c084fcaa] text-[0.95rem] m-0 italic text-center mt-1">Tracking humanity's most confident<br className="sm:hidden" /> guesses about its own obsolescence</p>
       </header>
 
       <div className="max-w-[1100px] mx-auto px-6 pb-4 max-sm:px-3 max-sm:pb-2">
