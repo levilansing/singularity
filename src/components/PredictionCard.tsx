@@ -1,13 +1,15 @@
-import type { Prediction } from "../data/types";
+import type { PredictionSlim, PredictionDetail } from "../data/types";
+import { getHeadshotPath } from "../data/types";
 import { getTypeBadge, getConfidenceBadge } from "../data/colors";
 import { PredictorAvatar } from "./PredictorAvatar";
 import { ShareButton } from "./ShareButton";
 
 interface PredictionCardProps {
-  prediction: Prediction;
+  prediction: PredictionSlim;
+  detail: PredictionDetail | null;
 }
 
-export function PredictionCard({ prediction }: PredictionCardProps) {
+export function PredictionCard({ prediction, detail }: PredictionCardProps) {
   const predictionYear = prediction.prediction_date.length === 4
     ? prediction.prediction_date
     : new Date(prediction.prediction_date).toLocaleDateString("en-US", { year: "numeric", month: "short" });
@@ -32,7 +34,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
           <PredictorAvatar
             key={prediction.id}
             name={prediction.predictor_name}
-            headshotLocal={prediction.headshot_local}
+            headshotLocal={getHeadshotPath(prediction.predictor_name)}
           />
         </div>
         <h2 className="text-[1.1rem] font-semibold m-0 text-(--text)">{prediction.predictor_name}</h2>
@@ -85,17 +87,21 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
 
       {/* Content */}
       <h3 className="text-base font-semibold m-0 mb-2 text-(--text) leading-snug">{prediction.headline}</h3>
-      <p className="text-[0.85rem] text-(--text-muted) leading-relaxed m-0 mb-3">{prediction.tldr_summary}</p>
+      {detail ? (
+        <p className="text-[0.85rem] text-(--text-muted) leading-relaxed m-0 mb-3 animate-[fadeIn_0.3s_ease-in]">{detail.tldr_summary}</p>
+      ) : (
+        <div className="h-[3.6rem] mb-3 rounded bg-[#ffffff08] animate-pulse" />
+      )}
 
       <div className="flex items-center justify-between">
-        {prediction.source_url ? (
+        {detail?.source_url ? (
           <a
-            href={prediction.source_url}
+            href={detail.source_url}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[0.8rem] text-(--accent) font-medium"
           >
-            {prediction.source_name || "Source"} →
+            {detail.source_name || "Source"} →
           </a>
         ) : <span />}
         <ShareButton prediction={prediction} />

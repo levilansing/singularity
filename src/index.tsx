@@ -11,6 +11,13 @@ const server = serve({
       if (await file.exists()) return new Response(file);
       return new Response("Not found", { status: 404 });
     },
+    "/data/predictions/:file": async (req) => {
+      const file = Bun.file(`public/data/predictions/${req.params.file}`);
+      if (await file.exists()) return new Response(file, {
+        headers: { "Content-Type": "application/json" }
+      });
+      return new Response("Not found", { status: 404 });
+    },
     "/art/:file": async (req) => {
       const file = Bun.file(`public/art/${req.params.file}`);
       if (await file.exists()) return new Response(file);

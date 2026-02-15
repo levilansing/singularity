@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Prediction } from "../data/types";
+import type { PredictionSlim } from "../data/types";
 import { getUrgencyLevel } from "../data/types";
 import { CountdownDigit } from "./CountdownDigit";
 import { MillisecondsDisplayCompact } from "./MillisecondsDisplay";
@@ -8,7 +8,7 @@ import { ShuffleIcon } from "./ShuffleIcon";
 import { ListIcon } from "./ListIcon";
 
 interface StickyHeaderProps {
-  prediction: Prediction;
+  prediction: PredictionSlim;
   onRandom?: () => void;
 }
 
@@ -47,7 +47,7 @@ function computeTimeRemaining(targetDate: string): TimeRemaining {
 export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
-  const urgency = getUrgencyLevel(prediction.target_date, prediction.has_countdown);
+  const urgency = getUrgencyLevel(prediction.target_date, prediction.predicted_year_best !== null);
   const [time, setTime] = useState<TimeRemaining | null>(
     prediction.target_date ? computeTimeRemaining(prediction.target_date) : null
   );

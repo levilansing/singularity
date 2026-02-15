@@ -1,5 +1,4 @@
 import { CONCEPTS, type Concept } from "../data/concepts";
-import type { Prediction } from "../data/types";
 import { CONCEPT_ICONS, type IconProps } from "./ConceptIcons";
 
 function LightbulbIcon() {
@@ -11,11 +10,13 @@ function LightbulbIcon() {
 }
 
 interface ConceptBlurbsProps {
-  prediction: Prediction;
+  conceptKeys: string[] | undefined;
 }
 
-export function ConceptBlurbs({ prediction }: ConceptBlurbsProps) {
-  const relevantConcepts = prediction.concept_keys
+export function ConceptBlurbs({ conceptKeys }: ConceptBlurbsProps) {
+  if (!conceptKeys) return null;
+
+  const relevantConcepts = conceptKeys
     .map((key) => CONCEPTS[key])
     .filter(Boolean) as Concept[];
 
@@ -56,3 +57,5 @@ export function ConceptBlurbs({ prediction }: ConceptBlurbsProps) {
     </section>
   );
 }
+
+export default ConceptBlurbs;

@@ -23,6 +23,7 @@
   }
 
   html {
+    background: var(--bg);
     font-size: 17px;
   }
 
@@ -217,6 +218,11 @@ body.urgency-philosophical {
 @keyframes infinity-shimmer {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* ── Milliseconds: isolate from urgency effects ── */

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { Prediction } from "../data/types";
+import type { PredictionSlim } from "../data/types";
 import {
   Select,
   SelectContent,
@@ -11,7 +11,7 @@ import {
 } from "./Select";
 
 interface PredictionPickerProps {
-  predictions: Prediction[];
+  predictions: PredictionSlim[];
   selectedId: number;
   onSelect: (id: number) => void;
   onRandom: () => void;

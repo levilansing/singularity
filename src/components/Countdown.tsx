@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import type { Prediction } from "../data/types";
+import type { PredictionSlim } from "../data/types";
 import { getUrgencyLevel } from "../data/types";
 import { canonicalType } from "../data/colors";
 import { getCommentary } from "../data/commentary";
@@ -10,7 +10,7 @@ import { ShuffleIcon } from "./ShuffleIcon";
 import { ListIcon } from "./ListIcon";
 
 interface CountdownProps {
-  prediction: Prediction;
+  prediction: PredictionSlim;
   onRandom?: () => void;
 }
 
@@ -47,7 +47,7 @@ function computeTimeRemaining(targetDate: string): TimeRemaining {
 }
 
 export function Countdown({ prediction, onRandom }: CountdownProps) {
-  const urgency = getUrgencyLevel(prediction.target_date, prediction.has_countdown);
+  const urgency = getUrgencyLevel(prediction.target_date, prediction.predicted_year_best !== null);
   const [time, setTime] = useState<TimeRemaining | null>(
     prediction.target_date ? computeTimeRemaining(prediction.target_date) : null
   );

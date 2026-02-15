@@ -2,7 +2,7 @@
 import { renderToString } from "react-dom/server";
 import { StaticRouter } from "react-router";
 import { App } from "../src/App";
-import predictions from "../src/data/predictions.json";
+import predictions from "../src/data/predictions-full.json";
 import type { Prediction } from "../src/data/types";
 import { slugify, getUrgencyLevel } from "../src/data/types";
 import { mkdir } from "fs/promises";
@@ -144,7 +144,7 @@ count++;
 // Individual prediction pages
 for (const p of allPredictions) {
   const slug = slugify(p);
-  const urgency = getUrgencyLevel(p.target_date, p.has_countdown);
+  const urgency = getUrgencyLevel(p.target_date, p.predicted_year_best !== null);
   const typeLabel = p.prediction_type.startsWith("AGI") ? "AGI" : p.prediction_type === "HLMI" ? "human-level AI" : p.prediction_type.toLowerCase();
   const yearStr = p.predicted_year_best ? `by ${p.predicted_year_best}` : "";
 

@@ -1,14 +1,15 @@
-import type { Prediction } from "../data/types";
+import type { PredictionSlim } from "../data/types";
+import { getHeadshotPath } from "../data/types";
 import { canonicalType, getTypeHex, getTypeBadge } from "../data/colors";
 import { PredictorAvatar } from "./PredictorAvatar";
 
 interface TimelineTooltipProps {
-  prediction: Prediction;
+  prediction: PredictionSlim;
   x: number;
   y: number;
 }
 
-function formatPredictedDate(p: Prediction): string | null {
+function formatPredictedDate(p: PredictionSlim): string | null {
   const dateStr = p.target_date ?? p.predicted_date_best;
   if (!dateStr) return p.predicted_year_best ? String(p.predicted_year_best) : null;
   const d = new Date(dateStr);
@@ -63,7 +64,7 @@ export function TimelineTooltip({ prediction, x, y }: TimelineTooltipProps) {
       {/* Top row: avatar + name/date on left, target date + type on right */}
       <div className="flex items-start gap-2.5">
         <div className="shrink-0 mt-0.5">
-          <PredictorAvatar name={prediction.predictor_name} headshotLocal={prediction.headshot_local} size="sm" />
+          <PredictorAvatar name={prediction.predictor_name} headshotLocal={getHeadshotPath(prediction.predictor_name)} size="sm" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start gap-2">

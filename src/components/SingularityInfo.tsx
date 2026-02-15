@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from "react";
-import predictions from "../data/predictions.json";
-import type { Prediction } from "../data/types";
+import predictions from "../data/predictions-slim.json";
+import type { PredictionSlim } from "../data/types";
 import { AgiIcon, SingularityIcon, SuperintelligenceIcon, TransformativeAiIcon, HlmiIcon } from "./TypeIcons";
 import { SectionHeader } from "./SectionHeader";
 
@@ -21,7 +21,7 @@ function SparkleIcon() {
   );
 }
 
-const allPredictions = predictions as Prediction[];
+const allPredictions = predictions as PredictionSlim[];
 
 /* ────────────────────────────────────────────
    Weighted average computation

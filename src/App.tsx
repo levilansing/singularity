@@ -1,31 +1,33 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, lazy, Suspense } from "react";
 import { Routes, Route, useParams, useNavigate, Navigate, useLocation } from "react-router-dom";
 import "./index.css";
-import predictions from "./data/predictions.json";
-import type { Prediction } from "./data/types";
+import predictions from "./data/predictions-slim.json";
+import type { PredictionSlim } from "./data/types";
 import { getUrgencyLevel, slugify } from "./data/types";
+import { usePredictionDetail } from "./hooks/usePredictionDetail";
 import { Countdown } from "./components/Countdown";
 import { PredictionCard } from "./components/PredictionCard";
-import { BrowseAll } from "./components/BrowseAll";
 import { Timeline } from "./components/Timeline";
 import { SingularityInfo, TypeCarousel, PredictionDrift, ThreeCamps, ShouldIBeWorried } from "./components/SingularityInfo";
 import { Footer } from "./components/Footer";
 import { StickyHeader } from "./components/StickyHeader";
-import { ConceptBlurbs } from "./components/ConceptBlurbs";
 import { FadeInSection } from "./components/FadeInSection";
 import { SectionHeader } from "./components/SectionHeader";
 import { CountdownSkeleton } from "./components/CountdownSkeleton";
 import { PredictionCardSkeleton } from "./components/PredictionCardSkeleton";
 
-const allPredictions = predictions as Prediction[];
-const countdownPredictions = allPredictions.filter((p) => p.has_countdown);
+const BrowseAll = lazy(() => import("./components/lazy").then(m => ({ default: m.BrowseAll })));
+const ConceptBlurbs = lazy(() => import("./components/lazy").then(m => ({ default: m.ConceptBlurbs })));
 
-const idMap = new Map<number, Prediction>();
+const allPredictions = predictions as PredictionSlim[];
+const countdownPredictions = allPredictions.filter((p) => p.predicted_year_best !== null);
+
+const idMap = new Map<number, PredictionSlim>();
 for (const p of allPredictions) {
   idMap.set(p.id, p);
 }
 
-function pickRandom(): Prediction {
+function pickRandom(): PredictionSlim {
   return countdownPredictions[Math.floor(Math.random() * countdownPredictions.length)]!;
 }
 
@@ -57,7 +59,7 @@ function PredictionPage() {
   // On home route (no id param), start with null and pick random after mount.
   // This lets SSR pre-render the page shell with skeletons for prediction-specific content.
   // On prediction routes (id param present), use the prediction directly.
-  const [randomPick, setRandomPick] = useState<Prediction | null>(
+  const [randomPick, setRandomPick] = useState<PredictionSlim | null>(
     id ? null : (typeof window === "undefined" ? null : pickRandom())
   );
 
@@ -67,9 +69,11 @@ function PredictionPage() {
     }
   }, [id, randomPick]);
 
-  const selected: Prediction | null = prediction ?? (id ? null : randomPick);
+  const selected: PredictionSlim | null = prediction ?? (id ? null : randomPick);
 
-  const urgency = selected ? getUrgencyLevel(selected.target_date, selected.has_countdown) : "far";
+  const { detail } = usePredictionDetail(selected?.id ?? null);
+
+  const urgency = selected ? getUrgencyLevel(selected.target_date, selected.predicted_year_best !== null) : "far";
 
   const handleSelect = useCallback((id: number) => {
     const found = allPredictions.find((p) => p.id === id);
@@ -119,11 +123,13 @@ function PredictionPage() {
             </section>
           </FadeInSection>
 
-          <FadeInSection>
+          <FadeInSection className="-mt-16 max-sm:-mt-6">
             {selected ? (
               <>
-                <PredictionCard prediction={selected} />
-                <ConceptBlurbs prediction={selected} />
+                <PredictionCard prediction={selected} detail={detail} />
+                <Suspense fallback={null}>
+                  <ConceptBlurbs conceptKeys={detail?.concept_keys} />
+                </Suspense>
               </>
             ) : (
               <PredictionCardSkeleton />
@@ -177,7 +183,11 @@ export function App() {
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/browse" element={<BrowseAll predictions={allPredictions} />} />
+        <Route path="/browse" element={
+          <Suspense fallback={<div className="max-w-[1100px] mx-auto px-6 pt-8 pb-16 max-sm:px-3 max-sm:pt-4" />}>
+            <BrowseAll predictions={allPredictions} />
+          </Suspense>
+        } />
         <Route path="/" element={<PredictionPage />} />
         <Route path="/:id/*" element={<PredictionPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

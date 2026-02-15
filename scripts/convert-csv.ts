@@ -1,9 +1,12 @@
 #!/usr/bin/env bun
 import path from "path";
+import { mkdir } from "fs/promises";
 
 const ROOT = path.resolve(import.meta.dir, "..");
 const CSV_PATH = path.join(ROOT, "data", "predictions-v2.csv");
-const OUT_PATH = path.join(ROOT, "src", "data", "predictions.json");
+const SLIM_PATH = path.join(ROOT, "src", "data", "predictions-slim.json");
+const FULL_PATH = path.join(ROOT, "src", "data", "predictions-full.json");
+const DETAIL_DIR = path.join(ROOT, "public", "data", "predictions");
 
 function parseCSVLine(line: string): string[] {
   const fields: string[] = [];
@@ -123,19 +126,11 @@ const predictions = lines.slice(1).map((line) => {
   const predicted_year_high = extractYear(row.predicted_date_high);
   const predicted_year_best = extractYear(row.predicted_date_best);
 
-  const has_countdown = predicted_year_best !== null;
   const target_date = predicted_date_best
     ? `${predicted_date_best}T00:00:00Z`
     : predicted_year_best
       ? `${predicted_year_best}-07-01T00:00:00Z`
       : null;
-
-  // Derive local headshot path from predictor name
-  const headshotSlug = (row.predictor_name ?? "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_|_$/g, "");
-  const headshot_local = `/headshots/${headshotSlug}.jpg`;
 
   // Headline slug from CSV (slugified: lowercase, hyphens) or fallback from headline
   const headlineSlugRaw = row.headline_slug ?? row.headline ?? "";
@@ -163,12 +158,52 @@ const predictions = lines.slice(1).map((line) => {
     headline: row.headline,
     headline_slug,
     tldr_summary: row.tldr_summary,
-    graphic_url: row.graphic_url,
     target_date,
-    has_countdown,
-    headshot_local,
   };
 });
 
-await Bun.write(OUT_PATH, JSON.stringify(predictions, null, 2));
-console.log(`✅ Converted ${predictions.length} predictions → ${OUT_PATH}`);
+// --- Generate slim records (no detail fields) ---
+const slimPredictions = predictions.map((p) => ({
+  id: p.id,
+  predictor_name: p.predictor_name,
+  predictor_type: p.predictor_type,
+  prediction_date: p.prediction_date,
+  predicted_date_low: p.predicted_date_low,
+  predicted_date_high: p.predicted_date_high,
+  predicted_date_best: p.predicted_date_best,
+  predicted_year_low: p.predicted_year_low,
+  predicted_year_high: p.predicted_year_high,
+  predicted_year_best: p.predicted_year_best,
+  prediction_type: p.prediction_type,
+  confidence_type: p.confidence_type,
+  confidence_label: p.confidence_label,
+  headline: p.headline,
+  headline_slug: p.headline_slug,
+  target_date: p.target_date,
+}));
+
+// --- Generate per-prediction detail files ---
+await mkdir(DETAIL_DIR, { recursive: true });
+for (const p of predictions) {
+  const detail = {
+    tldr_summary: p.tldr_summary,
+    criteria_definition: p.criteria_definition,
+    confidence_level: p.confidence_level,
+    source_name: p.source_name,
+    source_url: p.source_url,
+    concept_keys: p.concept_keys,
+  };
+  await Bun.write(
+    path.join(DETAIL_DIR, `${p.id}.json`),
+    JSON.stringify(detail)
+  );
+}
+
+// --- Write outputs ---
+await Bun.write(SLIM_PATH, JSON.stringify(slimPredictions, null, 2));
+await Bun.write(FULL_PATH, JSON.stringify(predictions, null, 2));
+
+console.log(`✅ Converted ${predictions.length} predictions:`);
+console.log(`   Slim  → ${SLIM_PATH}`);
+console.log(`   Full  → ${FULL_PATH}`);
+console.log(`   Detail → ${DETAIL_DIR}/ (${predictions.length} files)`);

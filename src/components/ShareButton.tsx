@@ -1,8 +1,8 @@
 import { useState } from "react";
-import type { Prediction } from "../data/types";
+import type { PredictionSlim } from "../data/types";
 
 interface ShareButtonProps {
-  prediction: Prediction;
+  prediction: PredictionSlim;
 }
 
 export function ShareButton({ prediction }: ShareButtonProps) {

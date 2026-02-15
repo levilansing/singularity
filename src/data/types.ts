@@ -1,4 +1,5 @@
-export interface Prediction {
+/** Fields needed by countdown, timeline, picker, browse, sticky header, SingularityInfo */
+export interface PredictionSlim {
   id: number;
   predictor_name: string;
   predictor_type: string;
@@ -10,24 +11,35 @@ export interface Prediction {
   predicted_year_high: number | null;
   predicted_year_best: number | null;
   prediction_type: string;
-  confidence_level: string;
-  confidence_label: string;
   confidence_type: string;
-  concept_keys: string[];
-  criteria_definition: string;
-  source_name: string;
-  source_url: string;
-  headshot_url: string;
+  confidence_label: string;
   headline: string;
   headline_slug: string;
-  tldr_summary: string;
-  graphic_url: string;
   target_date: string | null;
-  has_countdown: boolean;
-  headshot_local: string | null;
 }
 
-export function slugify(prediction: Prediction): string {
+/** Detail fields fetched per-prediction on demand */
+export interface PredictionDetail {
+  tldr_summary: string;
+  criteria_definition: string;
+  confidence_level: string;
+  source_name: string;
+  source_url: string;
+  concept_keys: string[];
+}
+
+/** Full prediction — used by prerender script and as the union of slim + detail */
+export type Prediction = PredictionSlim & PredictionDetail;
+
+export function getHeadshotPath(predictorName: string): string {
+  const slug = predictorName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+  return `/headshots/${slug}.jpg`;
+}
+
+export function slugify(prediction: PredictionSlim): string {
   return `${prediction.id}/${prediction.headline_slug}`;
 }
 
@@ -45,7 +57,8 @@ export function dateToFractionalYear(dateStr: string): number {
 export type UrgencyLevel = "past" | "imminent" | "near" | "far" | "philosophical";
 
 export function getUrgencyLevel(targetDate: string | null, hasCountdown?: boolean): UrgencyLevel {
-  if (!targetDate && !hasCountdown) return "philosophical";
+  const countdown = hasCountdown ?? (targetDate !== null);
+  if (!targetDate && !countdown) return "philosophical";
   if (!targetDate) return "far";
   const now = Date.now();
   const target = new Date(targetDate).getTime();

@@ -1,10 +1,10 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
-import type { Prediction } from "../data/types";
+import type { PredictionSlim } from "../data/types";
 import { dateToFractionalYear } from "../data/types";
 import { TimelineTooltip } from "./TimelineTooltip";
 
 interface TimelineProps {
-  predictions: Prediction[];
+  predictions: PredictionSlim[];
   selectedId: number;
   onSelect: (id: number) => void;
 }
@@ -14,7 +14,8 @@ const PADDING_RIGHT = 30;
 const PADDING_TOP = 30;
 const PADDING_BOTTOM = 50;
 const POINT_RADIUS = 5;
-const CHART_HEIGHT = 400;
+const CHART_HEIGHT_MAX = 400;
+const CHART_HEIGHT_MIN = 220;
 const ZOOM_FACTOR = 0.1;
 
 import { TYPE_HEX, TYPE_LEGEND_ORDER, canonicalType, getTypeHex } from "../data/colors";
@@ -75,7 +76,7 @@ const TOOLTIP_HEIGHT_ESTIMATE = 120;
 
 export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [tooltip, setTooltip] = useState<{ prediction: Prediction; x: number; y: number } | null>(null);
+  const [tooltip, setTooltip] = useState<{ prediction: PredictionSlim; x: number; y: number } | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null); // null = all active
 
@@ -201,10 +202,13 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     }
   }, []);
 
+  // Responsive chart height: scale linearly between min/max based on width
+  const chartHeight = Math.round(Math.min(CHART_HEIGHT_MAX, Math.max(CHART_HEIGHT_MIN, svgWidth * 0.45)));
+
   // Viewport state (the currently visible range)
   const [viewport, setViewport] = useState<{ xMin: number; xMax: number; yMin: number; yMax: number } | null>(null);
 
-  const svgHeight = PADDING_TOP + CHART_HEIGHT + PADDING_BOTTOM;
+  const svgHeight = PADDING_TOP + chartHeight + PADDING_BOTTOM;
   const nowYear = new Date().getFullYear() + new Date().getMonth() / 12;
 
   // Compute the max x-range allowed for a given svgWidth to maintain ≤2:1 x:y
@@ -212,10 +216,10 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   const getMaxXRange = useCallback((width: number) => {
     const plotWidth = width - PADDING_LEFT - PADDING_RIGHT;
     const yRange = dataBounds.yMax - dataBounds.yMin;
-    const yPerPx = yRange / CHART_HEIGHT;
+    const yPerPx = yRange / chartHeight;
     // Max 2x the y density on x-axis
     return 2 * yPerPx * plotWidth;
-  }, [dataBounds]);
+  }, [dataBounds, chartHeight]);
 
   // Build a viewport centered on "now" that respects the 2:1 ratio constraint
   const getConstrainedViewport = useCallback((width: number) => {
@@ -268,9 +272,9 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
 
   const yScale = useCallback(
     (year: number) => {
-      return PADDING_TOP + CHART_HEIGHT - ((year - vp.yMin) / (vp.yMax - vp.yMin)) * CHART_HEIGHT;
+      return PADDING_TOP + chartHeight - ((year - vp.yMin) / (vp.yMax - vp.yMin)) * chartHeight;
     },
-    [vp.yMin, vp.yMax]
+    [vp.yMin, vp.yMax, chartHeight]
   );
 
   // Compute vertical offsets for overlapping points
@@ -313,7 +317,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   const xTicks = useMemo(() => generateTicks(vp.xMin, vp.xMax), [vp.xMin, vp.xMax]);
   const yTicks = useMemo(() => generateTicks(vp.yMin, vp.yMax), [vp.yMin, vp.yMax]);
 
-  const handleMouseEnter = useCallback((prediction: Prediction, event: React.MouseEvent) => {
+  const handleMouseEnter = useCallback((prediction: PredictionSlim, event: React.MouseEvent) => {
     const container = containerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
@@ -378,7 +382,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
         checkX < PADDING_LEFT ||
         checkX > svgWidth - PADDING_RIGHT ||
         checkY < PADDING_TOP ||
-        checkY > PADDING_TOP + CHART_HEIGHT
+        checkY > PADDING_TOP + chartHeight
       ) return;
       e.preventDefault();
       const mouseX = e.clientX - rect.left;
@@ -393,7 +397,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       // Year at cursor
       const plotWidth = svgWidth - PADDING_LEFT - PADDING_RIGHT;
       const yearAtCursorX = vp.xMin + ((svgX - PADDING_LEFT) / plotWidth) * (vp.xMax - vp.xMin);
-      const yearAtCursorY = vp.yMin + ((PADDING_TOP + CHART_HEIGHT - svgY) / CHART_HEIGHT) * (vp.yMax - vp.yMin);
+      const yearAtCursorY = vp.yMin + ((PADDING_TOP + chartHeight - svgY) / chartHeight) * (vp.yMax - vp.yMin);
 
       const delta = e.deltaY > 0 ? ZOOM_FACTOR : -ZOOM_FACTOR;
       // Fraction of cursor position in viewport
@@ -452,7 +456,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       svgX >= PADDING_LEFT &&
       svgX <= svgWidth - PADDING_RIGHT &&
       svgY >= PADDING_TOP &&
-      svgY <= PADDING_TOP + CHART_HEIGHT
+      svgY <= PADDING_TOP + chartHeight
     );
   }, [svgWidth, svgHeight]);
 
@@ -526,7 +530,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       const pv = panStart.current.vp;
       const plotWidth = svgWidth - PADDING_LEFT - PADDING_RIGHT;
       const xShift = (dx / plotWidth) * (pv.xMax - pv.xMin);
-      const yShift = (dy / CHART_HEIGHT) * (pv.yMax - pv.yMin);
+      const yShift = (dy / chartHeight) * (pv.yMax - pv.yMin);
 
       // Pinch zoom from distance change
       const scale = ps.dist / dist; // >1 = zoom out, <1 = zoom in
@@ -539,7 +543,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       const pcx = (ps.cx - rect.left) * scaleX;
       const pcy = (ps.cy - rect.top) * scaleY;
       const fx = (pcx - PADDING_LEFT) / plotWidth;
-      const fy = (PADDING_TOP + CHART_HEIGHT - pcy) / CHART_HEIGHT;
+      const fy = (PADDING_TOP + chartHeight - pcy) / chartHeight;
       const yearCX = pvPinch.xMin + fx * (pvPinch.xMax - pvPinch.xMin);
       const yearCY = pvPinch.yMin + fy * (pvPinch.yMax - pvPinch.yMin);
 
@@ -559,7 +563,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     const pv = panStart.current.vp;
     const plotWidth = svgWidth - PADDING_LEFT - PADDING_RIGHT;
     const xShift = (dx / plotWidth) * (pv.xMax - pv.xMin);
-    const yShift = (dy / CHART_HEIGHT) * (pv.yMax - pv.yMin);
+    const yShift = (dy / chartHeight) * (pv.yMax - pv.yMin);
 
     setViewport(clampViewport({
       xMin: pv.xMin - xShift,
@@ -623,7 +627,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           {/* Clip path for chart area */}
           <defs>
             <clipPath id="chart-clip">
-              <rect x={PADDING_LEFT} y={PADDING_TOP} width={svgWidth - PADDING_LEFT - PADDING_RIGHT} height={CHART_HEIGHT} />
+              <rect x={PADDING_LEFT} y={PADDING_TOP} width={svgWidth - PADDING_LEFT - PADDING_RIGHT} height={chartHeight} />
             </clipPath>
           </defs>
 
@@ -632,7 +636,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
             x={PADDING_LEFT}
             y={PADDING_TOP}
             width={svgWidth - PADDING_LEFT - PADDING_RIGHT}
-            height={CHART_HEIGHT}
+            height={chartHeight}
             fill="transparent"
             style={{ cursor: isPanning.current ? "grabbing" : "grab" }}
           />
@@ -642,8 +646,8 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
             const x = xScale(year, svgWidth);
             return (
               <g key={`x-${year}`}>
-                <line x1={x} y1={PADDING_TOP} x2={x} y2={PADDING_TOP + CHART_HEIGHT} stroke="#ffffff10" strokeWidth={1} clipPath="url(#chart-clip)" />
-                <text x={x} y={PADDING_TOP + CHART_HEIGHT + 20} fill="#ffffff50" fontSize={11} textAnchor="middle" fontFamily="system-ui">
+                <line x1={x} y1={PADDING_TOP} x2={x} y2={PADDING_TOP + chartHeight} stroke="#ffffff10" strokeWidth={1} clipPath="url(#chart-clip)" />
+                <text x={x} y={PADDING_TOP + chartHeight + 20} fill="#ffffff50" fontSize={11} textAnchor="middle" fontFamily="system-ui">
                   {year}
                 </text>
               </g>
@@ -679,13 +683,13 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           {/* Y-axis label */}
           <text
             x={14}
-            y={PADDING_TOP + CHART_HEIGHT / 2}
+            y={PADDING_TOP + chartHeight / 2}
             fill="#ffffff50"
             fontSize={11}
             textAnchor="middle"
             fontFamily="system-ui"
             style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
-            transform={`rotate(-90, 14, ${PADDING_TOP + CHART_HEIGHT / 2})`}
+            transform={`rotate(-90, 14, ${PADDING_TOP + chartHeight / 2})`}
           >
             Year prediction was made
           </text>
@@ -713,7 +717,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
                   x1={nowX}
                   y1={PADDING_TOP}
                   x2={nowX}
-                  y2={PADDING_TOP + CHART_HEIGHT}
+                  y2={PADDING_TOP + chartHeight}
                   stroke="#fbbf24"
                   strokeWidth={2}
                   strokeDasharray="4 4"

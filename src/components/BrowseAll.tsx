@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { Prediction } from "../data/types";
+import type { PredictionSlim } from "../data/types";
 import { slugify } from "../data/types";
 import { TYPE_BADGE, TYPE_LEGEND_ORDER, CONFIDENCE_BADGE, canonicalType, getTypeBadge, getConfidenceBadge } from "../data/colors";
 
 interface BrowseAllProps {
-  predictions: Prediction[];
+  predictions: PredictionSlim[];
 }
 
 type SortKey = "prediction_date" | "predictor_name" | "predicted_year_best";
@@ -262,3 +262,5 @@ export function BrowseAll({ predictions }: BrowseAllProps) {
     </div>
   );
 }
+
+export default BrowseAll;
