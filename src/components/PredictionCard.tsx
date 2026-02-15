@@ -60,7 +60,7 @@ export function PredictionCard({ prediction, detail }: PredictionCardProps) {
           <div className="text-[0.65rem] font-mono uppercase tracking-wider text-(--text-dim) mb-1">Confidence</div>
           <div className="flex items-center">
             {prediction.confidence_label ? (
-              <span className={`px-2 py-0.5 rounded-full text-[0.7rem] font-medium border ${getConfidenceBadge(prediction.confidence_type)}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[0.7rem] font-medium border whitespace-nowrap ${getConfidenceBadge(prediction.confidence_type)}`}>
                 {prediction.confidence_label}
               </span>
             ) : (

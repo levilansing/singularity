@@ -111,7 +111,7 @@ const EVENT_TYPES: EventType[] = [
     tagline: "The One Everyone Argues About",
     color: "#06b6d4",
     description:
-      "Artificial General Intelligence — AI that can do anything a human can do intellectually. Learn a new language, write a novel, debug your code, file your taxes, have an existential crisis. The whole package. Right now, AI can beat you at chess, write your emails, and generate a passable cover letter, but ask it to do all three while making you a sandwich and it falls apart. With 83 predictions in our dataset — the most of any category — everyone has an opinion on this one.",
+      "Artificial General Intelligence — AI that can do anything a human can do intellectually. Learn a language, write a novel, debug your code, have an existential crisis. The whole package. Right now AI can beat you at chess and write your emails, but ask it to do both while making a sandwich and it falls apart. With 83 predictions in our dataset, everyone has an opinion on this one.",
     techDetails:
       "The definitional goalposts shift constantly. Google DeepMind proposed a 5-level framework in 2023: Emerging (Level 1, like a chatbot) through Superhuman (Level 5). OpenAI defines it internally as \"a system that outperforms the median human at most economically valuable work\" — conveniently, this lets the company that builds it also decide when it's been built. Andrew Ng proposed a \"Turing-AGI Test\" in 2026 focused on multi-day real-world task performance — a far harder bar than chatting convincingly. Ng also told his 2.3 million LinkedIn followers that AGI is \"highly limited\" and decades away, while the AAAI 2025 Presidential Panel found 76% of 475 researchers doubt scaling alone gets us there. Meanwhile, Satya Nadella calls the whole AGI race a \"winner's curse\" — even the CEO of the company spending $80B on AI isn't sure what they're building toward.",
     funFact:
@@ -125,7 +125,7 @@ const EVENT_TYPES: EventType[] = [
     tagline: "The Pragmatist's Definition",
     color: "#a78bfa",
     description:
-      "Forget arguing about consciousness and understanding — Transformative AI (TAI) asks a simpler question: does the world look fundamentally different? Specifically, AI that transforms civilization as much as the Industrial Revolution did. You don't need to solve philosophy to measure whether GDP doubled or billions of jobs vanished. This framework is the most popular category in our dataset after AGI, with 37 predictions — and some of the nearest-term timelines. Multiple IBM researchers, Microsoft's Suleyman, Stanford economists, and even AI skeptic Yann LeCun all agree *something* transformative is happening by 2026-2030. They just disagree on whether to call it \"AGI\" or \"really good autocomplete.\"",
+      "Forget arguing about consciousness — Transformative AI asks a simpler question: does the world look fundamentally different? AI that transforms civilization as much as the Industrial Revolution did. You don't need philosophy to measure whether GDP doubled or billions of jobs vanished. With 37 predictions and some of the nearest-term timelines, everyone from Suleyman to LeCun agrees *something* transformative is happening by 2026-2030. They just disagree on whether to call it \"AGI\" or \"really good autocomplete.\"",
     techDetails:
       "Open Philanthropy's framework (developed by Ajeya Cotra) uses \"biological anchors\" — counting the compute used by evolution to produce human brains, then estimating when artificial compute matches it. The original 2020 report gave a 50% probability by 2050; after watching GPT-3 and GPT-4, Cotra updated to 2040. Erik Brynjolfsson (Stanford) declared 2026 the year we finally measure whether AI actually does anything for productivity — a refreshingly empirical take. Pew Research found 68% of AI experts believe ethics guidelines will be \"cheerfully ignored\" — the most accurate prediction in this entire dataset. Stuart Russell warns the AI race is \"Russian roulette\" with extinction-level stakes by 2030, which is one way to get people to read your textbook.",
     funFact:
@@ -139,7 +139,7 @@ const EVENT_TYPES: EventType[] = [
     tagline: "As Smart as You (Yes, You Specifically)",
     color: "#ef4444",
     description:
-      "Human-Level Machine Intelligence (HLMI) is the benchmark used in the largest AI forecasting surveys: an AI that can perform any task as well as a median human, given the same resources and time. Not a genius, not a specialist — just... average-human-good at everything. This might sound like a low bar until you remember that the median human can do an astonishing range of things: cook dinner while comforting a crying child while mentally composing a grocery list while feeling vaguely anxious about climate change. HLMI has the fewest predictions in our dataset because most forecasters have migrated to the sexier \"AGI\" label, but the survey data here is arguably the most methodologically rigorous.",
+      "Human-Level Machine Intelligence — an AI that can perform any task as well as a median human, given the same resources and time. Not a genius, not a specialist — just average-human-good at everything. Sounds like a low bar until you remember the median human can cook dinner while comforting a crying child while feeling vaguely anxious about climate change. Fewest predictions in our dataset, but arguably the most methodologically rigorous survey data.",
     techDetails:
       "The Grace et al. survey (2016, 2022, 2023) is the gold standard for HLMI forecasting, polling thousands of AI researchers. The median shifted from 2061 (2016) to 2060 (2022) to 2047 (2023) — that 13-year jump after ChatGPT was unprecedented in the 70-year history of AI forecasting. Metaculus community forecasts moved even more dramatically: from ~50 years away in 2020 to ~7 years away in early 2026. The AAAI 2025 Presidential Panel survey found that 76% of 475 respondents believe scaling current approaches is unlikely to produce AGI — suggesting the optimistic industry timeline assumes breakthroughs beyond what we currently know how to do. Andrej Karpathy, ex-Tesla AI chief, declared a \"decade of agents\" rather than a \"year of agents\" — a diplomatically devastating correction to the hype cycle.",
     funFact:
@@ -153,7 +153,7 @@ const EVENT_TYPES: EventType[] = [
     tagline: "The One That Keeps Safety Researchers Up at Night",
     color: "#f97316",
     description:
-      "Artificial Superintelligence (ASI) — an intellect that doesn't just match human cognitive performance but vastly exceeds it in virtually all domains. Not \"slightly better at math\" but \"as far beyond us as we are beyond goldfish.\" Nick Bostrom's 2014 book made this concept mainstream and launched a thousand alignment research papers. With 26 predictions tracked, the range spans from Roman Yampolskiy's alarming \"2025\" to Douglas Hofstadter's measured \"2070.\" The core question isn't whether we *can* build it, but whether we can build it without accidentally optimizing the universe into paperclips.",
+      "Artificial Superintelligence — an intellect that doesn't just match human performance but vastly exceeds it in all domains. Not \"slightly better at math\" but \"as far beyond us as we are beyond goldfish.\" Bostrom's 2014 book made this mainstream and launched a thousand alignment papers. With 26 predictions ranging from Yampolskiy's \"2025\" to Hofstadter's \"2070,\" the core question isn't whether we *can* build it, but whether we can do so without optimizing the universe into paperclips.",
     techDetails:
       "David Chalmers (2010) formalized three tiers: AI (human-level), AI+ (moderately superhuman), and AI++ (radically superintelligent). He identified two logically independent explosions: intelligence (better reasoning) and speed (faster computation). A speed superintelligence running at 1 million x human speed would experience a millennium of thought per hour. Bostrom further distinguished between quality superintelligence (deeper reasoning), speed superintelligence (faster processing), and collective superintelligence (vast network coordination). Dario Amodei's January 2026 prediction of superintelligence by 2027 — with software engineers \"extinct by Christmas 2026\" — represents the aggressive end. Geoffrey Hinton, the Nobel-winning \"godfather of AI,\" gives 10-20% odds that AI kills everyone within 30 years, which is a *remarkably* calm way to put a number on potential human extinction.",
     funFact:
@@ -167,7 +167,7 @@ const EVENT_TYPES: EventType[] = [
     tagline: "The Point of No Return",
     color: "#fbbf24",
     description:
-      "The technological singularity is the hypothetical moment when technological growth becomes uncontrollable and irreversible. Think of it as the event horizon of human civilization — once you cross it, there's no going back, and nobody on this side can tell you what's on the other side. The term was popularized by John von Neumann in the 1950s, who described it as a point beyond which \"human affairs, as we know them, could not continue.\" Cheery stuff.",
+      "The hypothetical moment when technological growth becomes uncontrollable and irreversible — the event horizon of civilization. Once you cross it, there's no going back, and nobody on this side can tell you what's on the other side. Von Neumann described it as a point beyond which \"human affairs, as we know them, could not continue.\" Cheery stuff.",
     techDetails:
       "Vernor Vinge (1993) formalized the modern concept as an \"event horizon\" — borrowing from black hole physics where prediction becomes impossible. He identified four pathways: superhuman AI, awakened computer networks, brain-computer interfaces, and biological enhancement. Kurzweil (2005) disagrees on the unpredictability part — he sees it as the smooth, predictable endpoint of exponential growth, arriving in 2045 through a merger of human and machine intelligence via nanobots connecting your neocortex to the cloud. Jürgen Schmidhuber — the LSTM pioneer — bets on 2050 and thinks the doom-mongers are wrong, preferring to build AI research labs in Saudi Arabia instead of worrying. IBM plays it safe and calls it \"a theoretical scenario where technological growth becomes uncontrollable and irreversible,\" which is the corporate equivalent of a shrug emoji.",
     funFact:
@@ -812,21 +812,21 @@ export function ThreeCamps() {
       range: "2026 – 2030",
       color: "#ef4444",
       people: "Altman, Amodei, Musk, Brin, Suleyman, Son",
-      vibe: "Industry leaders with front-row seats to frontier model capabilities. Either they know something we don't, or their stock options are doing the talking. Amodei declared software engineers extinct by Christmas 2026. Musk says your job shouldn't involve thinking by 2029.",
+      vibe: "Industry leaders with front-row seats to frontier models. Either they know something we don't, or their stock options are doing the talking. Amodei: software engineers extinct by Christmas 2026.",
     },
     {
       label: "The Moderates",
       range: "2030 – 2050",
       color: "#fbbf24",
       people: "Hassabis, Metaculus, Grace survey, Cotra, Hinton, Pichai",
-      vibe: "Forecasting communities, academic surveys, and lab leaders using structured methodology. The \"we've seen this hype cycle before, but also... have you *seen* GPT-5?\" camp. Hassabis gives 50/50 odds by 2030. Hinton says 5-20 years and admits he has \"zero idea really.\"",
+      vibe: "Forecasting communities, academic surveys, and lab leaders. The \"we've seen this hype before, but have you *seen* GPT-5?\" camp. Hinton says 5-20 years and admits he has \"zero idea really.\"",
     },
     {
       label: "The Skeptics",
       range: "2050 – 2300",
       color: "#10b981",
       people: "Brooks, Ng, Marcus, Chollet, Nadella, Hofstadter",
-      vibe: "Emphasize that passing benchmarks ≠ understanding. Rodney Brooks revised from 2300 to 2075 — progress! Andrew Ng says the hype \"is creating the impression that AI systems are far more advanced than they truly are.\" Hofstadter worries about consciousness. Nadella calls AGI pursuit a \"winner's curse.\"",
+      vibe: "Passing benchmarks ≠ understanding. Brooks revised from 2300 to 2075 — progress! Ng says the hype \"is creating the impression AI systems are far more advanced than they truly are.\"",
     },
   ];
 
@@ -867,31 +867,25 @@ export function SingularityInfo() {
         <p>
           Short answer: nobody agrees. The <strong>technological singularity</strong> is the
           hypothetical future point where AI gets smart enough to improve itself faster than we can
-          keep up, also known as the <strong>intelligence explosion</strong>, and everything after that is...
-          unknowable. It's the point where all our trend lines go vertical and our prediction models start
+          keep up — the <strong>intelligence explosion</strong> — and everything after that is
+          unknowable. It's where our trend lines go vertical and our models start
           returning <code className="text-[0.8em] bg-[#ffffff08] px-1.5 py-0.5 rounded font-mono">NaN</code>.
         </p>
-        <p>
-          The term was coined (sort of) by mathematician <strong>John von Neumann</strong> in the
-          1950s, formalized by <strong>Vernor Vinge</strong> in 1993, and turned into a bestseller by{" "}
-          <strong>Ray Kurzweil</strong> in 2005. Since then, hundreds of experts have confidently
-          predicted exactly when this will happen. They've been consistently wrong, but they keep
-          trying. We respect the hustle.
+        <p className="pull-quote">
+          "The first ultraintelligent machine is the last invention that man need ever make."
+          <span className="attribution">— I.J. Good, 1965</span>
         </p>
         <p>
-          The problem is that nobody agrees on what "the singularity" actually <em>is</em>. Vinge
-          says it's an event horizon we can't see past. Kurzweil says it's the predictable endpoint
-          of exponential curves. Bostrom focuses on superintelligence. Economists track GDP going
-          vertical. As Yudkowsky put it, these are "logically distinct" ideas that people keep
-          mashing into "Singularity paste." But there's one thread that runs through almost all of
-          them: <strong>I.J. Good's intelligence explosion</strong> — his 1965 hypothesis that
-          the first machine smarter than us designs a smarter one, which designs a smarter one,
-          in a feedback loop that leaves humanity as spectators. Good called it "the last invention
-          that man need ever make." With expert timelines lurching forward by over a decade in a
-          single survey cycle, that hypothesis is getting harder to dismiss.
+          The term traces back to <strong>von Neumann</strong> in the 1950s, was formalized
+          by <strong>Vernor Vinge</strong> in 1993, and became a bestseller
+          with <strong>Kurzweil</strong> in 2005. Nobody agrees on what it actually <em>is</em> — Vinge
+          says event horizon, Kurzweil says predictable endpoint, Bostrom focuses on superintelligence — but
+          almost all versions orbit Good's intelligence explosion: the first machine smarter than us designs
+          a smarter one, and the loop leaves humanity as spectators. With expert timelines lurching
+          forward by over a decade in a single survey cycle, that hypothesis is getting harder to dismiss.
         </p>
         <p>
-          This site tracks <strong>{allPredictions.length} real predictions</strong> across five different
+          This site tracks <strong>{allPredictions.length} predictions</strong> across five
           flavors of singularity, because if we're going to be obsolete, we should at least have
           good data visualization for it.
         </p>
@@ -907,33 +901,23 @@ export function ShouldIBeWorried() {
       <SectionHeader title="So... Should I Be Worried?" />
 
       <div className="singularity-info-content bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
-        <div className="flex gap-6 max-sm:flex-col">
-          <div className="flex-1 min-w-0">
-            <p>
-              Depends who you ask. The industry insiders building these systems say 3-5 years. The
-              academics studying intelligence say 15-20. The AI safety researchers say it doesn't matter
-              when — what matters is whether we figure out <strong>alignment</strong> before we figure
-              out capability. Geoffrey Hinton gives a 10-20% chance AI kills everyone. Rodney Brooks
-              says 2075, down from 2300 — so even the skeptics are accelerating.
-            </p>
-            <p>
-              The most honest answer: <strong>the predictions themselves are accelerating</strong>.
-              Expert median estimates jumped forward 13 years in a single survey cycle after ChatGPT
-              launched. Metaculus forecasts compressed from "50 years away" to "7 years away" between
-              2020 and 2026. Fully {allPredictions.filter(p => p.prediction_date >= "2025").length} of
-              our {allPredictions.length} predictions were made in 2025 or later — the field is
-              generating opinions faster than it's generating breakthroughs.
-            </p>
-            <p>
-              Either way, that's what the countdown timer is for. Pick a prediction, watch the seconds
-              tick, and decide for yourself whether to feel excited, terrified, or both. We recommend
-              both.
-            </p>
-          </div>
-          <div className="flex-shrink-0 flex items-start max-sm:justify-center">
-            <img src="/art/robot-crystal-ball.png" alt="" className="w-64 h-64 object-cover rounded-xl opacity-80 max-md:w-36 max-md:h-36 max-sm:w-64 max-sm:h-64" />
-          </div>
-        </div>
+        <img src="/art/robot-crystal-ball.png" alt="" className="float-right w-64 h-64 object-cover rounded-xl opacity-80 ml-6 mb-4 max-md:w-36 max-md:h-36 max-sm:float-none max-sm:w-full max-sm:h-auto max-sm:ml-0 max-sm:mb-4" />
+        <p>
+          Depends who you ask. Industry insiders say 3-5 years. Academics say 15-20. Safety
+          researchers say it doesn't matter when — what matters is whether we figure
+          out <strong>alignment</strong> before we figure out capability. Even the skeptics are
+          accelerating: Brooks revised from 2300 to 2075, and expert medians jumped forward
+          13 years in a single survey cycle after ChatGPT launched.
+        </p>
+        <p className="pull-quote">
+          "There's a 10 to 20% chance that AI leads to human extinction within the next 30 years."
+          <span className="attribution">— Geoffrey Hinton, Nobel laureate &amp; "godfather of AI"</span>
+        </p>
+        <p>
+          That's what the countdown timer is for. Pick a prediction, watch the seconds
+          tick, and decide for yourself whether to feel excited, terrified, or both. We recommend
+          both.
+        </p>
       </div>
     </section>
   );
