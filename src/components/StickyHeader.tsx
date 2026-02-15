@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import type { PredictionSlim } from "../data/types";
 import { getUrgencyLevel } from "../data/types";
@@ -6,70 +6,33 @@ import { CountdownDigit } from "./CountdownDigit";
 import { MillisecondsDisplayCompact } from "./MillisecondsDisplay";
 import { ShuffleIcon } from "./ShuffleIcon";
 import { ListIcon } from "./ListIcon";
+import { useCountdownDom, computeInitialTime } from "../hooks/useCountdownDom";
 
 interface StickyHeaderProps {
   prediction: PredictionSlim;
   onRandom?: () => void;
 }
 
-interface TimeRemaining {
-  years: number;
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-  milliseconds: number;
-}
-
-function computeTimeRemaining(targetDate: string): TimeRemaining {
-  const diff = new Date(targetDate).getTime() - Date.now();
-  const absDiff = Math.abs(diff);
-  const sign = diff < 0 ? -1 : 1;
-
-  const milliseconds = Math.floor(absDiff % 1000);
-  const seconds = Math.floor(absDiff / 1000) % 60;
-  const minutes = Math.floor(absDiff / (1000 * 60)) % 60;
-  const hours = Math.floor(absDiff / (1000 * 60 * 60)) % 24;
-  const totalDays = Math.floor(absDiff / (1000 * 60 * 60 * 24));
-  const years = totalDays >= 365 ? Math.floor(totalDays / 365) : 0;
-  const days = totalDays - years * 365;
-
-  return {
-    years: years * sign,
-    days: days * sign,
-    hours,
-    minutes,
-    seconds,
-    milliseconds,
-  };
-}
-
 export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const urgency = getUrgencyLevel(prediction.target_date, prediction.predicted_year_best !== null);
-  const [time, setTime] = useState<TimeRemaining | null>(
-    prediction.target_date ? computeTimeRemaining(prediction.target_date) : null
-  );
+
+  const initialTime = prediction.target_date
+    ? computeInitialTime(prediction.target_date)
+    : null;
+
+  useCountdownDom(prediction.target_date, containerRef);
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show sticky header when scrolled down more than 400px
       setIsVisible(window.scrollY > 400);
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    if (!prediction.target_date) return;
-    setTime(computeTimeRemaining(prediction.target_date));
-    const interval = setInterval(() => {
-      setTime(computeTimeRemaining(prediction.target_date!));
-    }, 1000); // Update every second, CSS handles milliseconds
-    return () => clearInterval(interval);
-  }, [prediction.target_date]);
 
   const isPast = urgency === "past";
   const isPhilosophical = urgency === "philosophical";
@@ -82,24 +45,24 @@ export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
             <span className="font-mono text-2xl font-extralight text-(--accent)">∞</span>
           </div>
         )}
-        {!isPhilosophical && time && (() => {
-          const hasYears = time.years !== 0;
+        {!isPhilosophical && initialTime && (() => {
+          const hasYears = initialTime.years !== 0;
           const sepClass = "font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]";
           return (
-            <div className="flex items-start gap-[0.15rem] max-sm:gap-[0.1rem]">
+            <div ref={containerRef} className="flex items-start gap-[0.15rem] max-sm:gap-[0.1rem]">
               {hasYears && (
                 <>
-                  <CountdownDigit value={time.years} label="Y" urgency={urgency} compact />
+                  <CountdownDigit unit="years" initialValue={initialTime.years} label="Y" urgency={urgency} compact />
                   <span className={sepClass}>&nbsp;</span>
                 </>
               )}
-              <CountdownDigit value={time.days} label="D" urgency={urgency} compact />
+              <CountdownDigit unit="days" initialValue={initialTime.days} label="D" urgency={urgency} compact />
               <span className={sepClass}>&nbsp;</span>
-              <CountdownDigit value={time.hours} label="H" urgency={urgency} compact />
+              <CountdownDigit unit="hours" initialValue={initialTime.hours} label="H" urgency={urgency} compact />
               <span className={sepClass}>:</span>
-              <CountdownDigit value={time.minutes} label="M" urgency={urgency} compact />
+              <CountdownDigit unit="minutes" initialValue={initialTime.minutes} label="M" urgency={urgency} compact />
               <span className={sepClass}>:</span>
-              <CountdownDigit value={time.seconds} label="S" urgency={urgency} compact />
+              <CountdownDigit unit="seconds" initialValue={initialTime.seconds} label="S" urgency={urgency} compact />
               <span className={sepClass}>.</span>
               <MillisecondsDisplayCompact />
             </div>

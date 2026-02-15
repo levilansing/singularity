@@ -10,7 +10,8 @@ interface TimelineProps {
 }
 
 const PADDING_LEFT = 60;
-const PADDING_RIGHT = 30;
+const PADDING_RIGHT_DEFAULT = 30;
+const PADDING_RIGHT_MOBILE = 10;
 const PADDING_TOP = 30;
 const PADDING_BOTTOM = 50;
 const POINT_RADIUS = 5;
@@ -205,6 +206,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
 
   // Responsive chart height: scale linearly between min/max based on width
   const chartHeight = Math.round(Math.min(CHART_HEIGHT_MAX, Math.max(CHART_HEIGHT_MIN, svgWidth * 0.45)));
+  const PADDING_RIGHT = svgWidth < 500 ? PADDING_RIGHT_MOBILE : PADDING_RIGHT_DEFAULT;
 
   // Viewport state (the currently visible range)
   const [viewport, setViewport] = useState<{ xMin: number; xMax: number; yMin: number; yMax: number } | null>(null);
@@ -220,7 +222,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     const yPerPx = yRange / chartHeight;
     // Max 2x the y density on x-axis
     return 2 * yPerPx * plotWidth;
-  }, [dataBounds, chartHeight]);
+  }, [dataBounds, chartHeight, PADDING_RIGHT]);
 
   // Build a viewport centered on "now" that respects the 2:1 ratio constraint
   const getConstrainedViewport = useCallback((width: number) => {
@@ -607,7 +609,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   }, [getConstrainedViewport, svgWidth]);
 
   return (
-    <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-4 overflow-hidden" ref={containerRef}>
+    <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-4 overflow-hidden max-sm:-mx-3 max-sm:rounded-none max-sm:border-x-0 max-sm:px-2" ref={containerRef}>
       {/* Legend — clickable to filter */}
       <div className="flex flex-wrap gap-3 justify-center mb-3 text-xs">
         {TYPE_LEGEND_ORDER.map((type) => {

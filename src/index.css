@@ -195,6 +195,29 @@ body.urgency-philosophical {
   50% { opacity: 0.85; }
 }
 
+/* ── Animated gradient header ── */
+.animated-gradient-text {
+  background: linear-gradient(
+    90deg,
+    #e879a8,
+    #c084fc,
+    #67e8f9,
+    #a78bfa,
+    #e879a8
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 6s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 /* ── Infinity symbol (gradient text animation) ── */
 .infinity-symbol {
   font-family: var(--font-mono);
@@ -225,13 +248,44 @@ body.urgency-philosophical {
   to { opacity: 1; }
 }
 
-/* ── Milliseconds: isolate from urgency effects ── */
+/* ── Milliseconds: CSS-only animated digit roller ── */
 .countdown-ms-value {
   font-variant-numeric: tabular-nums;
   transition: none !important;
   animation: none !important;
   text-shadow: none !important;
-  will-change: contents;
+}
+
+.ms-roller {
+  display: inline-flex;
+  align-items: flex-start;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+  contain: content;
+}
+
+.ms-strip {
+  display: flex;
+  flex-direction: column;
+  width: 1ch;
+  will-change: transform;
+  animation: ms-scroll 1s steps(10) infinite reverse;
+}
+
+.ms-strip > span {
+  display: block;
+  height: 1em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ms-hundreds { animation-duration: 1s; }
+.ms-tens { animation-duration: 0.1s; }
+.ms-ones { animation-duration: 0.01s; }
+
+@keyframes ms-scroll {
+  to { transform: translateY(-100%); }
 }
 
 /* ── Timeline row hover ── */

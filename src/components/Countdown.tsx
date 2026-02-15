@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { PredictionSlim } from "../data/types";
 import { getUrgencyLevel } from "../data/types";
@@ -8,67 +8,31 @@ import { CountdownDigit } from "./CountdownDigit";
 import { MillisecondsDisplay } from "./MillisecondsDisplay";
 import { ShuffleIcon } from "./ShuffleIcon";
 import { ListIcon } from "./ListIcon";
+import { useCountdownDom, computeInitialTime } from "../hooks/useCountdownDom";
 
 interface CountdownProps {
   prediction: PredictionSlim;
   onRandom?: () => void;
 }
 
-interface TimeRemaining {
-  years: number;
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-  milliseconds: number;
-}
-
-function computeTimeRemaining(targetDate: string): TimeRemaining {
-  const diff = new Date(targetDate).getTime() - Date.now();
-  const absDiff = Math.abs(diff);
-  const sign = diff < 0 ? -1 : 1;
-
-  const milliseconds = Math.floor(absDiff % 1000);
-  const seconds = Math.floor(absDiff / 1000) % 60;
-  const minutes = Math.floor(absDiff / (1000 * 60)) % 60;
-  const hours = Math.floor(absDiff / (1000 * 60 * 60)) % 24;
-  const totalDays = Math.floor(absDiff / (1000 * 60 * 60 * 24));
-  const years = totalDays >= 365 ? Math.floor(totalDays / 365) : 0;
-  const days = totalDays - years * 365;
-
-  return {
-    years: years * sign,
-    days: days * sign,
-    hours,
-    minutes,
-    seconds,
-    milliseconds,
-  };
-}
-
 export function Countdown({ prediction, onRandom }: CountdownProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const urgency = getUrgencyLevel(prediction.target_date, prediction.predicted_year_best !== null);
-  const [time, setTime] = useState<TimeRemaining | null>(
-    prediction.target_date ? computeTimeRemaining(prediction.target_date) : null
-  );
   const commentary = useMemo(() => getCommentary(urgency, prediction.id), [urgency, prediction.id]);
 
-  useEffect(() => {
-    if (!prediction.target_date) return;
-    setTime(computeTimeRemaining(prediction.target_date));
-    const interval = setInterval(() => {
-      setTime(computeTimeRemaining(prediction.target_date!));
-    }, 1000); // Update every second, CSS handles milliseconds
-    return () => clearInterval(interval);
-  }, [prediction.target_date]);
+  const initialTime = prediction.target_date
+    ? computeInitialTime(prediction.target_date)
+    : null;
+
+  useCountdownDom(prediction.target_date, containerRef);
 
   const isPast = urgency === "past";
   const isPhilosophical = urgency === "philosophical";
 
   return (
-    <div className={`countdown-container text-center py-10 px-4 mb-12 rounded-xl bg-(--bg-card) border border-[#ffffff08] transition-all duration-500 max-sm:py-6 max-sm:px-3 urgency-${urgency}`}>
+    <div className={`countdown-container text-center py-7 px-4 mb-8 rounded-xl bg-(--bg-card) border border-[#ffffff08] transition-all duration-500 max-sm:py-5 max-sm:px-3 urgency-${urgency}`}>
 
-      <div className="countdown-prediction-year text-[0.95rem] text-(--text-muted) mb-8 min-h-[2lh]">
+      <div className="countdown-prediction-year text-[0.95rem] text-(--text-muted) mb-5 min-h-[2lh]">
         {(() => {
           const year = prediction.prediction_date ? new Date(prediction.prediction_date).getFullYear() : null;
           if (isPhilosophical) {
@@ -81,7 +45,6 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
               const d = new Date(dateStr);
               const month = d.getUTCMonth();
               const day = d.getUTCDate();
-              // Show month+year unless it's a year-boundary placeholder (Jan 1 or Dec 31)
               if (!((month === 0 && day === 1) || (month === 11 && day === 31))) {
                 byDate = d.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
               }
@@ -111,38 +74,38 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
         </div>
       )}
 
-      {!isPhilosophical && time && (() => {
-        const hasYears = time.years !== 0;
+      {!isPhilosophical && initialTime && (() => {
+        const hasYears = initialTime.years !== 0;
         const sepClass = `countdown-separator font-mono ${hasYears ? "text-[clamp(1.5rem,4.5vw,3rem)]" : "text-[clamp(2rem,6vw,4rem)]"} font-bold text-(--text-dim) leading-none pt-[0.1em] shrink-0`;
         return (
-          <div className={`flex flex-row justify-center items-start gap-1 mb-6 max-sm:gap-[0.1rem] ${hasYears ? "countdown-has-years" : ""}`}>
+          <div ref={containerRef} className={`flex flex-row justify-center items-start gap-1 mb-4 max-sm:gap-[0.1rem] ${hasYears ? "countdown-has-years" : ""}`}>
             {hasYears && (
               <>
-                <CountdownDigit value={time.years} label="Years" shortLabel="Y" urgency={urgency} />
+                <CountdownDigit unit="years" initialValue={initialTime.years} label="Years" shortLabel="Y" urgency={urgency} />
                 <span className={sepClass}>&nbsp;</span>
               </>
             )}
-            <CountdownDigit value={time.days} label="Days" shortLabel={hasYears ? "D" : undefined} urgency={urgency} />
+            <CountdownDigit unit="days" initialValue={initialTime.days} label="Days" shortLabel={hasYears ? "D" : undefined} urgency={urgency} />
             <span className={sepClass}>&nbsp;</span>
-            <CountdownDigit value={time.hours} label="Hours" shortLabel={hasYears ? "H" : undefined} urgency={urgency} />
+            <CountdownDigit unit="hours" initialValue={initialTime.hours} label="Hours" shortLabel={hasYears ? "H" : undefined} urgency={urgency} />
             <span className={sepClass}>:</span>
-            <CountdownDigit value={time.minutes} label="Minutes" shortLabel={hasYears ? "M" : undefined} urgency={urgency} />
+            <CountdownDigit unit="minutes" initialValue={initialTime.minutes} label="Minutes" shortLabel={hasYears ? "M" : undefined} urgency={urgency} />
             <span className={sepClass}>:</span>
-            <CountdownDigit value={time.seconds} label="Seconds" shortLabel={hasYears ? "S" : undefined} urgency={urgency} />
+            <CountdownDigit unit="seconds" initialValue={initialTime.seconds} label="Seconds" shortLabel={hasYears ? "S" : undefined} urgency={urgency} />
             <span className={sepClass}>.</span>
             <MillisecondsDisplay hasYears={hasYears} />
           </div>
         );
       })()}
 
-      {!isPhilosophical && !time && (
+      {!isPhilosophical && !initialTime && (
         <div className="font-mono text-2xl text-(--text-muted) py-8">
           <p>No specific date predicted</p>
           <p className="text-[0.9rem] text-(--text-dim) mt-2">Just vibes and existential dread</p>
         </div>
       )}
 
-      <div className="countdown-commentary text-[0.9rem] italic h-16 mb-3 flex justify-center items-center w-full" suppressHydrationWarning>{commentary}</div>
+      <div className="countdown-commentary text-[0.9rem] italic h-12 mb-2 flex justify-center items-center w-full" suppressHydrationWarning>{commentary}</div>
 
       <div className="flex justify-center gap-4 text-[0.8rem] text-(--text-dim)">
         {onRandom && (

@@ -604,7 +604,7 @@ export function PredictionDrift() {
               })}
               {/* Divider */}
               <div className="w-full h-px bg-[#ffffff0a] my-0.5 max-md:hidden" />
-              <div className="hidden max-md:block w-px h-3 bg-[#ffffff0a] mx-1 self-center" />
+              <div className="max-md:basis-full max-md:h-0" />
               <span className="flex items-center gap-1 text-[0.6rem] font-mono text-(--text-dim) whitespace-nowrap">
                 <span className="inline-block w-3 h-0.5 rounded shrink-0" style={{ background: medianColor }} />
                 median

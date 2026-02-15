@@ -1,27 +1,30 @@
-import { useRef, useEffect } from "react";
+const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
-function useMilliseconds(ref: React.RefObject<HTMLSpanElement | null>) {
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    let raf: number;
-    const tick = () => {
-      const ms = 999 - (Date.now() % 1000);
-      el.textContent = String(ms).padStart(3, "0");
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+function DigitStrip({ className }: { className: string }) {
+  return (
+    <span className={`ms-strip ${className}`} aria-hidden="true">
+      {digits.map((d) => (
+        <span key={d}>{d}</span>
+      ))}
+    </span>
+  );
+}
+
+function Roller() {
+  return (
+    <span className="ms-roller">
+      <DigitStrip className="ms-hundreds" />
+      <DigitStrip className="ms-tens" />
+      <DigitStrip className="ms-ones" />
+    </span>
+  );
 }
 
 export function MillisecondsDisplay({ hasYears = false }: { hasYears?: boolean }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  useMilliseconds(ref);
   return (
     <div className="countdown-digit-group flex flex-col items-center min-w-14 max-sm:min-w-10">
       <div className="countdown-digit-value countdown-ms-value font-mono text-[clamp(2rem,6vw,4rem)] font-bold leading-none text-(--text) tabular-nums">
-        <span ref={ref}>000</span>
+        <Roller />
       </div>
       {hasYears ? (
         <div className="text-[0.7rem] uppercase tracking-widest text-(--text-muted) mt-1.5">
@@ -36,12 +39,10 @@ export function MillisecondsDisplay({ hasYears = false }: { hasYears?: boolean }
 }
 
 export function MillisecondsDisplayCompact() {
-  const ref = useRef<HTMLSpanElement>(null);
-  useMilliseconds(ref);
   return (
     <div className="countdown-digit-group compact flex flex-col items-center !min-w-0">
       <div className="countdown-digit-value countdown-ms-value font-mono text-[clamp(2rem,6vw,4rem)] font-bold leading-none text-(--text) tabular-nums">
-        <span ref={ref}>000</span>
+        <Roller />
       </div>
       <div className="text-[0.7rem] uppercase tracking-widest text-(--text-muted) mt-1.5">MS</div>
     </div>
