@@ -6,7 +6,7 @@ export function Footer() {
         either a testament to how far we've come or a warning about how
         low the bar is. Prediction data sourced from published forecasts,
         surveys, and prediction markets. Accuracy of said predictions not
-        guaranteed, obviously, or we wouldn't need a countdown.
+        guaranteed, obviously, or we wouldn't be here.
       </p>
     </footer>
   );

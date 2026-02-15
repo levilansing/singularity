@@ -72,7 +72,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
       {prediction.target_date && new Date(prediction.target_date).getTime() < Date.now() && (
         <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-[#ff444410] border border-[#ff444420]">
           <span className="text-[1rem] leading-none">💀</span>
-          <span className="text-[0.8rem] text-[#ff6666] font-mono">
+          <span className="text-[0.8rem] text-[#ff6666] font-mono" suppressHydrationWarning>
             {(() => {
               const days = Math.floor((Date.now() - new Date(prediction.target_date!).getTime()) / (1000 * 60 * 60 * 24));
               if (days < 365) return `${days} days overdue — any minute now...`;

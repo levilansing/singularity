@@ -52,7 +52,10 @@ const pools: Record<UrgencyLevel, string[]> = {
   philosophical: philosophicalCommentary,
 };
 
-export function getCommentary(urgency: UrgencyLevel): string {
+export function getCommentary(urgency: UrgencyLevel, seed?: number): string {
   const pool = pools[urgency];
-  return pool[Math.floor(Math.random() * pool.length)]!;
+  // Use seed for deterministic selection (avoids hydration mismatch),
+  // fall back to random if no seed provided.
+  const index = seed != null ? Math.abs(seed) % pool.length : Math.floor(Math.random() * pool.length);
+  return pool[index]!;
 }

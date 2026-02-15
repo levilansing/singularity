@@ -173,4 +173,12 @@ if (sitemapResult.exitCode !== 0) {
   process.exit(1);
 }
 
+// Pre-render static pages for SEO
+console.log("🎨 Pre-rendering static pages...");
+const prerenderResult = Bun.spawnSync(["bun", "scripts/prerender.tsx", outdir], { cwd: process.cwd(), stdout: "inherit", stderr: "inherit" });
+if (prerenderResult.exitCode !== 0) {
+  console.error("❌ Pre-rendering failed");
+  process.exit(1);
+}
+
 console.log(`\n✅ Build completed in ${buildTime}ms\n`);

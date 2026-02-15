@@ -18,7 +18,7 @@ export function CountdownDigit({ value, label, shortLabel, urgency, compact = fa
 
   return (
     <div className={`countdown-digit-group flex flex-col items-center ${compact ? "compact !min-w-0" : "min-w-14 max-sm:min-w-10"} urgency-${urgency}`}>
-      <div className="countdown-digit-value font-mono text-[clamp(2rem,6vw,4rem)] font-bold leading-none text-(--text) transition-[color,text-shadow] duration-500 tabular-nums">
+      <div className="countdown-digit-value font-mono text-[clamp(2rem,6vw,4rem)] font-bold leading-none text-(--text) transition-[color,text-shadow] duration-500 tabular-nums" suppressHydrationWarning>
         {isNegative && (label === "Days" || label === "D") && <span>-</span>}
         {formatted}
       </div>

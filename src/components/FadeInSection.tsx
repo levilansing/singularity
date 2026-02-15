@@ -7,11 +7,15 @@ interface FadeInSectionProps {
 
 export function FadeInSection({ children, className = "" }: FadeInSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  // SSR: start visible so content appears in pre-rendered HTML
+  const [isVisible, setIsVisible] = useState(() => typeof window === "undefined");
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // After hydration, reset visibility and let IntersectionObserver handle it
+    setIsVisible(false);
 
     const observer = new IntersectionObserver(
       ([entry]) => {

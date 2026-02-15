@@ -14,6 +14,8 @@ import { StickyHeader } from "./components/StickyHeader";
 import { ConceptBlurbs } from "./components/ConceptBlurbs";
 import { FadeInSection } from "./components/FadeInSection";
 import { SectionHeader } from "./components/SectionHeader";
+import { CountdownSkeleton } from "./components/CountdownSkeleton";
+import { PredictionCardSkeleton } from "./components/PredictionCardSkeleton";
 
 const allPredictions = predictions as Prediction[];
 const countdownPredictions = allPredictions.filter((p) => p.has_countdown);
@@ -52,8 +54,20 @@ function PredictionPage() {
     }
   }, [prediction, id, rest, navigate]);
 
-  const [randomPick] = useState(() => pickRandom());
-  const selected = prediction ?? (id ? undefined : randomPick);
+  // On home route (no id param), start with null and pick random after mount.
+  // This lets SSR pre-render the page shell with skeletons for prediction-specific content.
+  // On prediction routes (id param present), use the prediction directly.
+  const [randomPick, setRandomPick] = useState<Prediction | null>(
+    id ? null : (typeof window === "undefined" ? null : pickRandom())
+  );
+
+  useEffect(() => {
+    if (!id && !randomPick) {
+      setRandomPick(pickRandom());
+    }
+  }, [id, randomPick]);
+
+  const selected: Prediction | null = prediction ?? (id ? null : randomPick);
 
   const urgency = selected ? getUrgencyLevel(selected.target_date, selected.has_countdown) : "far";
 
@@ -73,11 +87,12 @@ function PredictionPage() {
     };
   }, [urgency]);
 
-  if (!selected) return null;
+  // For invalid id routes, render nothing while the redirect effect fires
+  if (id && !prediction) return null;
 
   return (
     <>
-      <StickyHeader prediction={selected} onRandom={handleRandom} />
+      {selected && <StickyHeader prediction={selected} onRandom={handleRandom} />}
       <header className="text-center pt-14 mb-12 max-sm:pt-8 max-sm:mb-8">
         <h1 className="font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 tracking-tight text-center bg-linear-to-r from-[#e879a8] via-[#c084fc] to-[#67e8f9] bg-clip-text text-transparent">The Singularity is Coming</h1>
         <p className="text-[#c084fcaa] text-[0.95rem] m-0 italic text-center mt-1">Tracking humanity's most confident guesses about its own obsolescence</p>
@@ -86,20 +101,30 @@ function PredictionPage() {
       <div className="max-w-[1100px] mx-auto px-6 pb-4 max-sm:px-3 max-sm:pb-2">
 
         <div className="mb-10 max-sm:mb-6">
-          <Countdown prediction={selected} onRandom={handleRandom} />
+          {selected ? (
+            <Countdown prediction={selected} onRandom={handleRandom} />
+          ) : (
+            <CountdownSkeleton />
+          )}
         </div>
 
         <div className="flex flex-col gap-16 max-sm:gap-10">
           <FadeInSection>
             <section>
               <SectionHeader title="Every Prediction, Visualized" />
-              <Timeline predictions={allPredictions} selectedId={selected.id} onSelect={handleSelect} />
+              <Timeline predictions={allPredictions} selectedId={selected?.id ?? -1} onSelect={handleSelect} />
             </section>
           </FadeInSection>
 
           <FadeInSection>
-            <PredictionCard prediction={selected} />
-            <ConceptBlurbs prediction={selected} />
+            {selected ? (
+              <>
+                <PredictionCard prediction={selected} />
+                <ConceptBlurbs prediction={selected} />
+              </>
+            ) : (
+              <PredictionCardSkeleton />
+            )}
           </FadeInSection>
 
           <FadeInSection>

@@ -51,7 +51,7 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
   const [time, setTime] = useState<TimeRemaining | null>(
     prediction.target_date ? computeTimeRemaining(prediction.target_date) : null
   );
-  const commentary = useMemo(() => getCommentary(urgency), [urgency, prediction.predictor_name]);
+  const commentary = useMemo(() => getCommentary(urgency, prediction.id), [urgency, prediction.id]);
 
   useEffect(() => {
     if (!prediction.target_date) return;
@@ -142,7 +142,7 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
         </div>
       )}
 
-      <div className="countdown-commentary text-[0.9rem] italic h-16 mb-3 flex justify-center items-center w-full">{commentary}</div>
+      <div className="countdown-commentary text-[0.9rem] italic h-16 mb-3 flex justify-center items-center w-full" suppressHydrationWarning>{commentary}</div>
 
       <div className="flex justify-center gap-4 text-[0.8rem] text-(--text-dim)">
         {onRandom && (
