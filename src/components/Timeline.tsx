@@ -518,40 +518,39 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     const scaleY = svgHeight / rect.height;
 
     if (e.pointerType === "touch" && activePointers.current.size >= 2) {
-      // Two-finger: pan + pinch zoom
+      // Two-finger: unified pan + pinch zoom anchored at current midpoint
       const center = getTwoFingerCenter()!;
       const dist = getTwoFingerDist();
       const ps = pinchStart.current;
       if (!ps || ps.dist === 0) return;
 
-      // Pan from center movement
-      const dx = (center.x - panStart.current.x) * scaleX;
-      const dy = (center.y - panStart.current.y) * scaleY;
-      const pv = panStart.current.vp;
       const plotWidth = svgWidth - PADDING_LEFT - PADDING_RIGHT;
-      const xShift = (dx / plotWidth) * (pv.xMax - pv.xMin);
-      const yShift = (dy / chartHeight) * (pv.yMax - pv.yMin);
 
-      // Pinch zoom from distance change
+      // Zoom scale from finger distance change
       const scale = ps.dist / dist; // >1 = zoom out, <1 = zoom in
       const pvPinch = ps.vp;
       const xRange = (pvPinch.xMax - pvPinch.xMin) * scale;
       const yRange = (pvPinch.yMax - pvPinch.yMin) * scale;
       if (xRange < 2 || yRange < 2 || xRange > 500 || yRange > 500) return;
 
-      // Pinch center in SVG coordinates
-      const pcx = (ps.cx - rect.left) * scaleX;
-      const pcy = (ps.cy - rect.top) * scaleY;
-      const fx = (pcx - PADDING_LEFT) / plotWidth;
-      const fy = (PADDING_TOP + chartHeight - pcy) / chartHeight;
-      const yearCX = pvPinch.xMin + fx * (pvPinch.xMax - pvPinch.xMin);
-      const yearCY = pvPinch.yMin + fy * (pvPinch.yMax - pvPinch.yMin);
+      // Data coordinate that was under the initial midpoint
+      const initSvgX = (ps.cx - rect.left) * scaleX;
+      const initSvgY = (ps.cy - rect.top) * scaleY;
+      const dataX = pvPinch.xMin + ((initSvgX - PADDING_LEFT) / plotWidth) * (pvPinch.xMax - pvPinch.xMin);
+      const dataY = pvPinch.yMin + ((PADDING_TOP + chartHeight - initSvgY) / chartHeight) * (pvPinch.yMax - pvPinch.yMin);
 
+      // Current midpoint in SVG coordinates — this is where dataX/dataY should appear
+      const curSvgX = (center.x - rect.left) * scaleX;
+      const curSvgY = (center.y - rect.top) * scaleY;
+      const fx = (curSvgX - PADDING_LEFT) / plotWidth;
+      const fy = (PADDING_TOP + chartHeight - curSvgY) / chartHeight;
+
+      // Position viewport so dataX/dataY maps to the current midpoint
       setViewport(clampViewport({
-        xMin: yearCX - fx * xRange - xShift,
-        xMax: yearCX + (1 - fx) * xRange - xShift,
-        yMin: yearCY - fy * yRange + yShift,
-        yMax: yearCY + (1 - fy) * yRange + yShift,
+        xMin: dataX - fx * xRange,
+        xMax: dataX + (1 - fx) * xRange,
+        yMin: dataY - fy * yRange,
+        yMax: dataY + (1 - fy) * yRange,
       }, dataBounds));
       return;
     }
