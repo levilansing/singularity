@@ -10,7 +10,7 @@ const s: React.CSSProperties = {
 
 /** AGI — brain with circuit nodes */
 export function AgiIcon({ size = "1.4em" }: IconProps) {
-  const c = "#8b5cf6";
+  const c = "#06b6d4";
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ ...s, width: size, height: size }}>
       <path d="M12 4C9.5 4 7.5 5.2 6.5 7c-.7 1.2-1 2.6-1 4 0 1.5.5 2.8 1.2 3.8.5.7.8 1.5.8 2.2v2h5" />
@@ -33,7 +33,7 @@ export function AgiIcon({ size = "1.4em" }: IconProps) {
 
 /** Singularity — black hole with accretion rings */
 export function SingularityIcon({ size = "1.4em" }: IconProps) {
-  const c = "#f59e0b";
+  const c = "#fbbf24";
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ ...s, width: size, height: size }}>
       <ellipse cx="12" cy="12" rx="10" ry="3.5" opacity={0.25} />
@@ -48,7 +48,7 @@ export function SingularityIcon({ size = "1.4em" }: IconProps) {
 
 /** Superintelligence — radiating head with crown rays and inner eye */
 export function SuperintelligenceIcon({ size = "1.4em" }: IconProps) {
-  const c = "#ef4444";
+  const c = "#f97316";
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ ...s, width: size, height: size }}>
       <line x1="12" y1="1.5" x2="12" y2="4.5" strokeWidth={2} />
@@ -89,7 +89,7 @@ export function IntelligenceExplosionIcon({ size = "1.4em" }: IconProps) {
 
 /** Transformative AI — fading wave morphing into bold wave */
 export function TransformativeAiIcon({ size = "1.4em" }: IconProps) {
-  const c = "#06b6d4";
+  const c = "#a78bfa";
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ ...s, width: size, height: size }}>
       <path d="M2 7c1.5-2.5 3-2.5 4.5 0S9.5 9.5 11 7" opacity={0.3} />
@@ -106,7 +106,7 @@ export function TransformativeAiIcon({ size = "1.4em" }: IconProps) {
 
 /** Human-Level AI — chalk-outline humanoid with square CRT head */
 export function HlmiIcon({ size = "1.4em" }: IconProps) {
-  const c = "#a855f7";
+  const c = "#ef4444";
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" style={{ ...s, width: size, height: size }}>
       {/* Square CRT head */}

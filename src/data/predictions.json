@@ -1558,13 +1558,14 @@
     "predicted_year_low": 1965,
     "predicted_year_high": 2000,
     "predicted_year_best": 2000,
-    "prediction_type": "Intelligence Explosion",
+    "prediction_type": "Singularity",
     "confidence_level": "Stated as inevitable consequence of first ultraintelligent machine, with certainty about recursive self-improvement triggering intelligence explosion",
     "confidence_label": "Apocalyptically Certain",
     "confidence_type": "certain",
     "concept_keys": [
-      "intelligence-explosion",
+      "event-horizon",
       "recursive-self-improvement",
+      "intelligence-explosion",
       "accelerating-change",
       "alignment"
     ],
@@ -2589,12 +2590,12 @@
     "predicted_year_low": 2029,
     "predicted_year_high": 2030,
     "predicted_year_best": 2029,
-    "prediction_type": "Intelligence Explosion",
+    "prediction_type": "Singularity",
     "confidence_level": "Stated as near-term certainty in public forum addressing global business leaders",
     "confidence_label": "Bluntly Disruptive",
     "confidence_type": "high",
     "concept_keys": [
-      "intelligence-explosion",
+      "event-horizon",
       "economic-singularity"
     ],
     "criteria_definition": "AI capable of replacing human cognitive labor across professional knowledge work",
@@ -2618,12 +2619,12 @@
     "predicted_year_low": 2028,
     "predicted_year_high": 2030,
     "predicted_year_best": 2029,
-    "prediction_type": "Intelligence Explosion",
+    "prediction_type": "Singularity",
     "confidence_level": "Framed as inevitable transformation reshaping employment structures and scientific progress",
     "confidence_label": "Productivity Apocalypse",
     "confidence_type": "high",
     "concept_keys": [
-      "intelligence-explosion",
+      "event-horizon",
       "scaling-hypothesis"
     ],
     "criteria_definition": "AI systems dominating scientific research and innovation, making human scientists comparatively obsolete",
@@ -3638,12 +3639,12 @@
     "predicted_year_low": 2029,
     "predicted_year_high": 2030,
     "predicted_year_best": 2029,
-    "prediction_type": "Intelligence Explosion",
+    "prediction_type": "Singularity",
     "confidence_level": "High confidence based on quantitative Time to Edit (TTE) metric tracking AI translation performance approaching human parity from 2014-2022, with clear trend line extrapolation",
     "confidence_label": "Metric-Driven Confident",
     "confidence_type": "high",
     "concept_keys": [
-      "intelligence-explosion"
+      "event-horizon"
     ],
     "criteria_definition": "AI achieving human-level translation accuracy measured by Time to Edit metric, indicating broader artificial general intelligence through language mastery",
     "source_name": "Popular Mechanics December 2025",
@@ -4377,12 +4378,12 @@
     "predicted_year_low": 2030,
     "predicted_year_high": 2070,
     "predicted_year_best": 2050,
-    "prediction_type": "Intelligence Explosion",
+    "prediction_type": "Singularity",
     "confidence_level": "Medium confidence based on pattern matching to previous economic singularities (Agricultural and Industrial Revolutions)",
     "confidence_label": "Historically Extrapolated",
     "confidence_type": "medium",
     "concept_keys": [
-      "intelligence-explosion",
+      "event-horizon",
       "accelerating-change",
       "economic-singularity"
     ],

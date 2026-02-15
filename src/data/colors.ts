@@ -2,22 +2,20 @@
 
 // Hex colors for SVG charts
 export const TYPE_HEX: Record<string, string> = {
-  "AGI": "#8b5cf6",
-  "Superintelligence": "#ef4444",
-  "Singularity": "#f59e0b",
-  "Transformative AI": "#06b6d4",
-  "Intelligence Explosion": "#f97316",
-  "Human-level AI": "#a855f7",
+  "AGI": "#06b6d4",
+  "Transformative AI": "#a78bfa",
+  "Human-level AI": "#ef4444",
+  "Superintelligence": "#f97316",
+  "Singularity": "#fbbf24",
 };
 
 // Tailwind classes for badges
 export const TYPE_BADGE: Record<string, string> = {
-  "AGI": "bg-violet-500/20 text-violet-300 border-violet-500/30",
-  "Superintelligence": "bg-red-500/20 text-red-300 border-red-500/30",
-  "Singularity": "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  "Transformative AI": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-  "Intelligence Explosion": "bg-orange-500/20 text-orange-300 border-orange-500/30",
-  "Human-level AI": "bg-purple-500/20 text-purple-300 border-purple-500/30",
+  "AGI": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+  "Transformative AI": "bg-violet-400/20 text-violet-300 border-violet-400/30",
+  "Human-level AI": "bg-red-500/20 text-red-300 border-red-500/30",
+  "Superintelligence": "bg-orange-500/20 text-orange-300 border-orange-500/30",
+  "Singularity": "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
 };
 
 /** Legend order — consistent across all charts */

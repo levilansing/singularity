@@ -20,7 +20,7 @@ id,predictor_name,predictor_type,prediction_date,predicted_date_low,predicted_da
 5. **predicted_date_low**: YYYY-MM-DD for earliest predicted date
 6. **predicted_date_high**: YYYY-MM-DD for latest predicted date
 7. **predicted_date_best**: YYYY-MM-DD for most likely/median prediction
-8. **prediction_type**: One of: AGI, Superintelligence, Transformative AI, Intelligence Explosion, Singularity
+8. **prediction_type**: One of: AGI, Superintelligence, Transformative AI, HLMI, Singularity
 9. **confidence_level**: Direct quote or paraphrase of their stated confidence from source
 10. **criteria_definition**: Succinct, accurate definition that distinguishes this prediction from others (what counts as AGI/ASI/etc for them)
 11. **source_name**: Publication/platform name

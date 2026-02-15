@@ -59,7 +59,6 @@ function deriveConceptKeys(row: Record<string, string>): string[] {
   // Prediction type mappings
   if (row.prediction_type === "Superintelligence") keys.add("superintelligence");
   if (row.prediction_type === "AGI" || row.prediction_type === "AGI (weak)" || row.prediction_type === "AGI (strong)") keys.add("agi");
-  if (row.prediction_type === "Intelligence Explosion") keys.add("intelligence-explosion");
   if (row.prediction_type === "HLMI") keys.add("agi");
   if (row.prediction_type === "Transformative AI") keys.add("transformative-ai");
   if (row.prediction_type === "Singularity") keys.add("event-horizon");

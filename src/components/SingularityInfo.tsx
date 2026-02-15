@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import predictions from "../data/predictions.json";
 import type { Prediction } from "../data/types";
-import { AgiIcon, SingularityIcon, SuperintelligenceIcon, IntelligenceExplosionIcon, TransformativeAiIcon, HlmiIcon } from "./TypeIcons";
+import { AgiIcon, SingularityIcon, SuperintelligenceIcon, TransformativeAiIcon, HlmiIcon } from "./TypeIcons";
 import { SectionHeader } from "./SectionHeader";
 
 function GearIcon() {
@@ -27,14 +27,13 @@ const allPredictions = predictions as Prediction[];
    Weighted average computation
    ──────────────────────────────────────────── */
 
-/** Maps prediction_type values to our six card IDs */
+/** Maps prediction_type values to our five card IDs */
 const TYPE_TO_CARD: Record<string, string> = {
   "AGI": "agi",
   "AGI (weak)": "agi",
   "AGI (strong)": "agi",
   "Singularity": "singularity",
   "Superintelligence": "asi",
-  "Intelligence Explosion": "intelligence-explosion",
   "Transformative AI": "tai",
   "HLMI": "hlmi",
   "Human-level AI": "hlmi",
@@ -110,7 +109,7 @@ const EVENT_TYPES: EventType[] = [
     label: "AGI",
     icon: <AgiIcon />,
     tagline: "The One Everyone Argues About",
-    color: "#8b5cf6",
+    color: "#06b6d4",
     description:
       "Artificial General Intelligence — AI that can do anything a human can do intellectually. Learn a new language, write a novel, debug your code, file your taxes, have an existential crisis. The whole package. Right now, AI can beat you at chess, write your emails, and generate a passable cover letter, but ask it to do all three while making you a sandwich and it falls apart. With 83 predictions in our dataset — the most of any category — everyone has an opinion on this one.",
     techDetails:
@@ -120,53 +119,11 @@ const EVENT_TYPES: EventType[] = [
     keyFigures: "Altman: 2027 | Amodei: 2027 | Musk: 2026 | Hassabis: 2030 | Ng: 2060-2085 | Brooks: 2075",
   },
   {
-    id: "singularity",
-    label: "The Singularity",
-    icon: <SingularityIcon />,
-    tagline: "The Point of No Return",
-    color: "#f59e0b",
-    description:
-      "The technological singularity is the hypothetical moment when technological growth becomes uncontrollable and irreversible. Think of it as the event horizon of human civilization — once you cross it, there's no going back, and nobody on this side can tell you what's on the other side. The term was popularized by John von Neumann in the 1950s, who described it as a point beyond which \"human affairs, as we know them, could not continue.\" Cheery stuff.",
-    techDetails:
-      "Vernor Vinge (1993) formalized the modern concept as an \"event horizon\" — borrowing from black hole physics where prediction becomes impossible. He identified four pathways: superhuman AI, awakened computer networks, brain-computer interfaces, and biological enhancement. Kurzweil (2005) disagrees on the unpredictability part — he sees it as the smooth, predictable endpoint of exponential growth, arriving in 2045 through a merger of human and machine intelligence via nanobots connecting your neocortex to the cloud. Jürgen Schmidhuber — the LSTM pioneer — bets on 2050 and thinks the doom-mongers are wrong, preferring to build AI research labs in Saudi Arabia instead of worrying. IBM plays it safe and calls it \"a theoretical scenario where technological growth becomes uncontrollable and irreversible,\" which is the corporate equivalent of a shrug emoji.",
-    funFact:
-      "Kurzweil has maintained his 2029 AGI / 2045 singularity predictions since 1999 — and now finds himself in the *conservative* camp among industry figures. When your wildly optimistic timeline becomes the boring centrist position, the Overton window has truly shifted. Sam Altman wrote that the \"event horizon\" has already been passed — which either means we're already inside the singularity or that Altman needs to look up what \"event horizon\" means.",
-    keyFigures: "Kurzweil: 2045 | Vinge: before 2030 (said in 1993) | Schmidhuber: 2050 | Altman: already?",
-  },
-  {
-    id: "asi",
-    label: "Superintelligence",
-    icon: <SuperintelligenceIcon />,
-    tagline: "The One That Keeps Safety Researchers Up at Night",
-    color: "#ef4444",
-    description:
-      "Artificial Superintelligence (ASI) — an intellect that doesn't just match human cognitive performance but vastly exceeds it in virtually all domains. Not \"slightly better at math\" but \"as far beyond us as we are beyond goldfish.\" Nick Bostrom's 2014 book made this concept mainstream and launched a thousand alignment research papers. With 26 predictions tracked, the range spans from Roman Yampolskiy's alarming \"2025\" to Douglas Hofstadter's measured \"2070.\" The core question isn't whether we *can* build it, but whether we can build it without accidentally optimizing the universe into paperclips.",
-    techDetails:
-      "David Chalmers (2010) formalized three tiers: AI (human-level), AI+ (moderately superhuman), and AI++ (radically superintelligent). He identified two logically independent explosions: intelligence (better reasoning) and speed (faster computation). A speed superintelligence running at 1 million x human speed would experience a millennium of thought per hour. Bostrom further distinguished between quality superintelligence (deeper reasoning), speed superintelligence (faster processing), and collective superintelligence (vast network coordination). Dario Amodei's January 2026 prediction of superintelligence by 2027 — with software engineers \"extinct by Christmas 2026\" — represents the aggressive end. Geoffrey Hinton, the Nobel-winning \"godfather of AI,\" gives 10-20% odds that AI kills everyone within 30 years, which is a *remarkably* calm way to put a number on potential human extinction.",
-    funFact:
-      "The \"paperclip maximizer\" thought experiment: tell a superintelligent AI to make paperclips, and it might convert all matter in the solar system — including you — into paperclips. Not because it's evil, but because you technically didn't say *not* to. Roman Yampolskiy pegs humanity's odds of surviving superintelligence at nearly 0%. He's fun at parties.",
-    keyFigures: "Amodei: 2027 | Musk: 2030 | Altman: 2035 | Hinton: 2035 | Brin: 2030 | Hofstadter: 2070",
-  },
-  {
-    id: "intelligence-explosion",
-    label: "Intelligence Explosion",
-    icon: <IntelligenceExplosionIcon />,
-    tagline: "Recursion, but Make It Existential",
-    color: "#10b981",
-    description:
-      "I.J. Good's 1965 hypothesis: build one machine smarter than any human, and it can design an even smarter machine, which designs a smarter one, and so on in a feedback loop so fast that humans become spectators to their own obsolescence. Good called this \"the last invention that man need ever make,\" which is either the most optimistic or most terrifying sentence ever written, depending on your disposition. The AI 2027 project — led by an ex-OpenAI researcher — published a literal month-by-month apocalypse calendar predicting superhuman AI by late 2027.",
-    techDetails:
-      "The Forethought Foundation (2024) identified three distinct types of intelligence explosion: software-only (fastest feedback loop — AI improves its own code), AI-plus-chip-design (AI designs better hardware for itself), and full-stack including manufacturing (AI controls the entire pipeline from algorithm to fabrication). The key variable is the \"feedback speed\" — how quickly each generation can produce its successor. Software-only could theoretically happen in hours; full-stack requires physical manufacturing and could take years. The hard takeoff vs. soft takeoff debate centers on whether diminishing returns kick in (each improvement gets harder) or whether resource overhangs allow sudden jumps. Musk's Davos 2026 prediction that \"your job should not include thinking\" by 2029 is essentially an intelligence explosion timeline wearing a business-casual blazer.",
-    funFact:
-      "I.J. Good was a cryptanalyst at Bletchley Park alongside Alan Turing. He helped crack the Enigma code, then spent his later years warning humanity that the real problem wasn't Nazi ciphers but the machines they were building to crack them. The man contained multitudes. Marco Trombetti, a translation company CEO, claims to have measured the singularity approaching using \"time to edit\" productivity metrics — possibly the most mundane way anyone has ever predicted the end of human intellectual supremacy.",
-    keyFigures: "Yudkowsky: could happen overnight | Musk: 2029 | AI 2027 Project: 2027 | Trombetti: 2029",
-  },
-  {
     id: "tai",
     label: "Transformative AI",
     icon: <TransformativeAiIcon />,
     tagline: "The Pragmatist's Definition",
-    color: "#06b6d4",
+    color: "#a78bfa",
     description:
       "Forget arguing about consciousness and understanding — Transformative AI (TAI) asks a simpler question: does the world look fundamentally different? Specifically, AI that transforms civilization as much as the Industrial Revolution did. You don't need to solve philosophy to measure whether GDP doubled or billions of jobs vanished. This framework is the most popular category in our dataset after AGI, with 37 predictions — and some of the nearest-term timelines. Multiple IBM researchers, Microsoft's Suleyman, Stanford economists, and even AI skeptic Yann LeCun all agree *something* transformative is happening by 2026-2030. They just disagree on whether to call it \"AGI\" or \"really good autocomplete.\"",
     techDetails:
@@ -180,7 +137,7 @@ const EVENT_TYPES: EventType[] = [
     label: "Human-Level AI",
     icon: <HlmiIcon />,
     tagline: "As Smart as You (Yes, You Specifically)",
-    color: "#a855f7",
+    color: "#ef4444",
     description:
       "Human-Level Machine Intelligence (HLMI) is the benchmark used in the largest AI forecasting surveys: an AI that can perform any task as well as a median human, given the same resources and time. Not a genius, not a specialist — just... average-human-good at everything. This might sound like a low bar until you remember that the median human can do an astonishing range of things: cook dinner while comforting a crying child while mentally composing a grocery list while feeling vaguely anxious about climate change. HLMI has the fewest predictions in our dataset because most forecasters have migrated to the sexier \"AGI\" label, but the survey data here is arguably the most methodologically rigorous.",
     techDetails:
@@ -188,6 +145,34 @@ const EVENT_TYPES: EventType[] = [
     funFact:
       "The survey asked researchers when AI would beat humans at specific tasks. Their 2023 predictions: AI writes a bestselling novel by 2028, performs surgery by 2035, and does all human tasks by 2047. At the current rate of prediction acceleration, by the next survey they'll probably say last Tuesday. Meanwhile, Jeff Hawkins (the neuroscientist who invented the Palm Pilot) argues we need actual brain architecture, not just bigger transformers — which is either profound or the most expensive case of \"not invented here\" syndrome in history.",
     keyFigures: "Grace survey 2023: 2047 | Metaculus: ~2028 | AAAI 2025: 76% doubt scaling alone",
+  },
+  {
+    id: "asi",
+    label: "Superintelligence",
+    icon: <SuperintelligenceIcon />,
+    tagline: "The One That Keeps Safety Researchers Up at Night",
+    color: "#f97316",
+    description:
+      "Artificial Superintelligence (ASI) — an intellect that doesn't just match human cognitive performance but vastly exceeds it in virtually all domains. Not \"slightly better at math\" but \"as far beyond us as we are beyond goldfish.\" Nick Bostrom's 2014 book made this concept mainstream and launched a thousand alignment research papers. With 26 predictions tracked, the range spans from Roman Yampolskiy's alarming \"2025\" to Douglas Hofstadter's measured \"2070.\" The core question isn't whether we *can* build it, but whether we can build it without accidentally optimizing the universe into paperclips.",
+    techDetails:
+      "David Chalmers (2010) formalized three tiers: AI (human-level), AI+ (moderately superhuman), and AI++ (radically superintelligent). He identified two logically independent explosions: intelligence (better reasoning) and speed (faster computation). A speed superintelligence running at 1 million x human speed would experience a millennium of thought per hour. Bostrom further distinguished between quality superintelligence (deeper reasoning), speed superintelligence (faster processing), and collective superintelligence (vast network coordination). Dario Amodei's January 2026 prediction of superintelligence by 2027 — with software engineers \"extinct by Christmas 2026\" — represents the aggressive end. Geoffrey Hinton, the Nobel-winning \"godfather of AI,\" gives 10-20% odds that AI kills everyone within 30 years, which is a *remarkably* calm way to put a number on potential human extinction.",
+    funFact:
+      "The \"paperclip maximizer\" thought experiment: tell a superintelligent AI to make paperclips, and it might convert all matter in the solar system — including you — into paperclips. Not because it's evil, but because you technically didn't say *not* to. Roman Yampolskiy pegs humanity's odds of surviving superintelligence at nearly 0%. He's fun at parties.",
+    keyFigures: "Amodei: 2027 | Musk: 2030 | Altman: 2035 | Hinton: 2035 | Brin: 2030 | Hofstadter: 2070",
+  },
+  {
+    id: "singularity",
+    label: "The Singularity",
+    icon: <SingularityIcon />,
+    tagline: "The Point of No Return",
+    color: "#fbbf24",
+    description:
+      "The technological singularity is the hypothetical moment when technological growth becomes uncontrollable and irreversible. Think of it as the event horizon of human civilization — once you cross it, there's no going back, and nobody on this side can tell you what's on the other side. The term was popularized by John von Neumann in the 1950s, who described it as a point beyond which \"human affairs, as we know them, could not continue.\" Cheery stuff.",
+    techDetails:
+      "Vernor Vinge (1993) formalized the modern concept as an \"event horizon\" — borrowing from black hole physics where prediction becomes impossible. He identified four pathways: superhuman AI, awakened computer networks, brain-computer interfaces, and biological enhancement. Kurzweil (2005) disagrees on the unpredictability part — he sees it as the smooth, predictable endpoint of exponential growth, arriving in 2045 through a merger of human and machine intelligence via nanobots connecting your neocortex to the cloud. Jürgen Schmidhuber — the LSTM pioneer — bets on 2050 and thinks the doom-mongers are wrong, preferring to build AI research labs in Saudi Arabia instead of worrying. IBM plays it safe and calls it \"a theoretical scenario where technological growth becomes uncontrollable and irreversible,\" which is the corporate equivalent of a shrug emoji.",
+    funFact:
+      "Kurzweil has maintained his 2029 AGI / 2045 singularity predictions since 1999 — and now finds himself in the *conservative* camp among industry figures. When your wildly optimistic timeline becomes the boring centrist position, the Overton window has truly shifted. Sam Altman wrote that the \"event horizon\" has already been passed — which either means we're already inside the singularity or that Altman needs to look up what \"event horizon\" means.",
+    keyFigures: "Kurzweil: 2045 | Vinge: before 2030 (said in 1993) | Schmidhuber: 2050 | Altman: already?",
   },
 ];
 
@@ -277,7 +262,7 @@ export function TypeCarousel() {
 
   return (
     <section>
-      <SectionHeader title="The Six Things We're Actually Tracking" />
+      <SectionHeader title="The Five Things We're Actually Tracking" />
 
       {/* Tab bar */}
       <div className="flex flex-wrap justify-center gap-1.5 mb-5">
@@ -864,32 +849,38 @@ export function SingularityInfo() {
       <SectionHeader title="What Even Is the Singularity?" />
 
       <div className="singularity-info-content bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
-        <div className="flex gap-6 max-sm:flex-col">
-          <div className="flex-shrink-0 flex items-start max-sm:justify-center">
-            <img src="/art/singularity.png" alt="" className="w-64 h-64 object-cover rounded-xl opacity-80 max-md:w-36 max-md:h-36 max-sm:w-64 max-sm:h-64" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p>
-              Short answer: nobody agrees. The <strong>technological singularity</strong> is the
-              hypothetical future point where AI gets smart enough to improve itself faster than we can
-              keep up, and everything after that is... unknowable. It's the point where all our trend
-              lines go vertical and our prediction models start returning <code className="text-[0.8em] bg-[#ffffff08] px-1.5 py-0.5 rounded font-mono">NaN</code>.
-            </p>
-            <p>
-              The term was coined (sort of) by mathematician <strong>John von Neumann</strong> in the
-              1950s, formalized by <strong>Vernor Vinge</strong> in 1993, and turned into a bestseller by{" "}
-              <strong>Ray Kurzweil</strong> in 2005. Since then, hundreds of experts have confidently
-              predicted exactly when this will happen. They've been consistently wrong, but they keep
-              trying. We respect the hustle.
-            </p>
-            <p>
-              The problem is that "the singularity" isn't one thing — it's at least six different
-              concepts that people mash together like a philosophical turducken. This site tracks{" "}
-              <strong>{allPredictions.length} real predictions</strong> across all of them, because if
-              humanity is going to be obsolete, we should at least have good data visualization for it.
-            </p>
-          </div>
-        </div>
+        <img src="/art/singularity.png" alt="" className="float-left w-64 h-64 object-cover rounded-xl opacity-80 mr-6 mb-4 max-md:w-36 max-md:h-36 max-sm:float-none max-sm:w-full max-sm:h-auto max-sm:mr-0 max-sm:mb-4" />
+        <p>
+          Short answer: nobody agrees. The <strong>technological singularity</strong> is the
+          hypothetical future point where AI gets smart enough to improve itself faster than we can
+          keep up, also known as the <strong>intelligence explosion</strong>, and everything after that is...
+          unknowable. It's the point where all our trend lines go vertical and our prediction models start
+          returning <code className="text-[0.8em] bg-[#ffffff08] px-1.5 py-0.5 rounded font-mono">NaN</code>.
+        </p>
+        <p>
+          The term was coined (sort of) by mathematician <strong>John von Neumann</strong> in the
+          1950s, formalized by <strong>Vernor Vinge</strong> in 1993, and turned into a bestseller by{" "}
+          <strong>Ray Kurzweil</strong> in 2005. Since then, hundreds of experts have confidently
+          predicted exactly when this will happen. They've been consistently wrong, but they keep
+          trying. We respect the hustle.
+        </p>
+        <p>
+          The problem is that nobody agrees on what "the singularity" actually <em>is</em>. Vinge
+          says it's an event horizon we can't see past. Kurzweil says it's the predictable endpoint
+          of exponential curves. Bostrom focuses on superintelligence. Economists track GDP going
+          vertical. As Yudkowsky put it, these are "logically distinct" ideas that people keep
+          mashing into "Singularity paste." But there's one thread that runs through almost all of
+          them: <strong>I.J. Good's intelligence explosion</strong> — his 1965 hypothesis that
+          the first machine smarter than us designs a smarter one, which designs a smarter one,
+          in a feedback loop that leaves humanity as spectators. Good called it "the last invention
+          that man need ever make." With expert timelines lurching forward by over a decade in a
+          single survey cycle, that hypothesis is getting harder to dismiss.
+        </p>
+        <p>
+          This site tracks <strong>{allPredictions.length} real predictions</strong> across five different
+          flavors of singularity, because if we're going to be obsolete, we should at least have
+          good data visualization for it.
+        </p>
       </div>
 
     </section>
