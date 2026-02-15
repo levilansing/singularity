@@ -15,6 +15,7 @@ interface CountdownProps {
 }
 
 interface TimeRemaining {
+  years: number;
   days: number;
   hours: number;
   minutes: number;
@@ -31,9 +32,12 @@ function computeTimeRemaining(targetDate: string): TimeRemaining {
   const seconds = Math.floor(absDiff / 1000) % 60;
   const minutes = Math.floor(absDiff / (1000 * 60)) % 60;
   const hours = Math.floor(absDiff / (1000 * 60 * 60)) % 24;
-  const days = Math.floor(absDiff / (1000 * 60 * 60 * 24));
+  const totalDays = Math.floor(absDiff / (1000 * 60 * 60 * 24));
+  const years = totalDays >= 365 ? Math.floor(totalDays / 365) : 0;
+  const days = totalDays - years * 365;
 
   return {
+    years: years * sign,
     days: days * sign,
     hours,
     minutes,
@@ -107,19 +111,29 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
         </div>
       )}
 
-      {!isPhilosophical && time && (
-        <div className="flex flex-row justify-center items-start gap-1 mb-6 flex-wrap max-sm:gap-[0.1rem]">
-          <CountdownDigit value={time.days} label="Days" urgency={urgency} />
-          <span className="countdown-separator font-mono text-[clamp(2rem,6vw,4rem)] font-bold text-(--text-dim) leading-none pt-[0.1em] shrink-0">:</span>
-          <CountdownDigit value={time.hours} label="Hours" urgency={urgency} />
-          <span className="countdown-separator font-mono text-[clamp(2rem,6vw,4rem)] font-bold text-(--text-dim) leading-none pt-[0.1em] shrink-0">:</span>
-          <CountdownDigit value={time.minutes} label="Minutes" urgency={urgency} />
-          <span className="countdown-separator font-mono text-[clamp(2rem,6vw,4rem)] font-bold text-(--text-dim) leading-none pt-[0.1em] shrink-0">:</span>
-          <CountdownDigit value={time.seconds} label="Seconds" urgency={urgency} />
-          <span className="countdown-separator font-mono text-[clamp(2rem,6vw,4rem)] font-bold text-(--text-dim) leading-none pt-[0.1em] shrink-0">:</span>
-          <MillisecondsDisplay />
-        </div>
-      )}
+      {!isPhilosophical && time && (() => {
+        const hasYears = time.years !== 0;
+        const sepClass = `countdown-separator font-mono ${hasYears ? "text-[clamp(1.5rem,4.5vw,3rem)]" : "text-[clamp(2rem,6vw,4rem)]"} font-bold text-(--text-dim) leading-none pt-[0.1em] shrink-0`;
+        return (
+          <div className={`flex flex-row justify-center items-start gap-1 mb-6 max-sm:gap-[0.1rem] ${hasYears ? "countdown-has-years" : ""}`}>
+            {hasYears && (
+              <>
+                <CountdownDigit value={time.years} label="Years" shortLabel="Y" urgency={urgency} />
+                <span className={sepClass}>&nbsp;</span>
+              </>
+            )}
+            <CountdownDigit value={time.days} label="Days" shortLabel={hasYears ? "D" : undefined} urgency={urgency} />
+            <span className={sepClass}>&nbsp;</span>
+            <CountdownDigit value={time.hours} label="Hours" shortLabel={hasYears ? "H" : undefined} urgency={urgency} />
+            <span className={sepClass}>:</span>
+            <CountdownDigit value={time.minutes} label="Minutes" shortLabel={hasYears ? "M" : undefined} urgency={urgency} />
+            <span className={sepClass}>:</span>
+            <CountdownDigit value={time.seconds} label="Seconds" shortLabel={hasYears ? "S" : undefined} urgency={urgency} />
+            <span className={sepClass}>.</span>
+            <MillisecondsDisplay hasYears={hasYears} />
+          </div>
+        );
+      })()}
 
       {!isPhilosophical && !time && (
         <div className="font-mono text-2xl text-(--text-muted) py-8">

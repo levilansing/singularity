@@ -13,6 +13,7 @@ interface StickyHeaderProps {
 }
 
 interface TimeRemaining {
+  years: number;
   days: number;
   hours: number;
   minutes: number;
@@ -29,9 +30,12 @@ function computeTimeRemaining(targetDate: string): TimeRemaining {
   const seconds = Math.floor(absDiff / 1000) % 60;
   const minutes = Math.floor(absDiff / (1000 * 60)) % 60;
   const hours = Math.floor(absDiff / (1000 * 60 * 60)) % 24;
-  const days = Math.floor(absDiff / (1000 * 60 * 60 * 24));
+  const totalDays = Math.floor(absDiff / (1000 * 60 * 60 * 24));
+  const years = totalDays >= 365 ? Math.floor(totalDays / 365) : 0;
+  const days = totalDays - years * 365;
 
   return {
+    years: years * sign,
     days: days * sign,
     hours,
     minutes,
@@ -78,19 +82,29 @@ export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
             <span className="font-mono text-2xl font-extralight text-(--accent)">∞</span>
           </div>
         )}
-        {!isPhilosophical && time && (
-          <div className="flex items-start gap-[0.15rem] max-sm:gap-[0.1rem]">
-            <CountdownDigit value={time.days} label="D" urgency={urgency} compact />
-            <span className="font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]">:</span>
-            <CountdownDigit value={time.hours} label="H" urgency={urgency} compact />
-            <span className="font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]">:</span>
-            <CountdownDigit value={time.minutes} label="M" urgency={urgency} compact />
-            <span className="font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]">:</span>
-            <CountdownDigit value={time.seconds} label="S" urgency={urgency} compact />
-            <span className="font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]">:</span>
-            <MillisecondsDisplayCompact />
-          </div>
-        )}
+        {!isPhilosophical && time && (() => {
+          const hasYears = time.years !== 0;
+          const sepClass = "font-mono text-[1.2rem] font-bold text-(--text-dim) leading-snug max-sm:text-[1rem]";
+          return (
+            <div className="flex items-start gap-[0.15rem] max-sm:gap-[0.1rem]">
+              {hasYears && (
+                <>
+                  <CountdownDigit value={time.years} label="Y" urgency={urgency} compact />
+                  <span className={sepClass}>&nbsp;</span>
+                </>
+              )}
+              <CountdownDigit value={time.days} label="D" urgency={urgency} compact />
+              <span className={sepClass}>&nbsp;</span>
+              <CountdownDigit value={time.hours} label="H" urgency={urgency} compact />
+              <span className={sepClass}>:</span>
+              <CountdownDigit value={time.minutes} label="M" urgency={urgency} compact />
+              <span className={sepClass}>:</span>
+              <CountdownDigit value={time.seconds} label="S" urgency={urgency} compact />
+              <span className={sepClass}>.</span>
+              <MillisecondsDisplayCompact />
+            </div>
+          );
+        })()}
         <div className="flex flex-col gap-0.5 max-sm:text-center">
           <span className="text-[0.7rem] uppercase tracking-[0.1em] text-(--text-muted)">
             {isPhilosophical ? "Beyond time" : isPast ? "Since" : "Until"} {isPhilosophical ? "" : "the singularity"}

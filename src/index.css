@@ -282,6 +282,11 @@ body.urgency-philosophical {
   translate: 0 0;
 }
 
+/* Smaller digits when years are shown */
+.countdown-has-years .countdown-digit-value {
+  font-size: clamp(1.5rem, 4.5vw, 3rem) !important;
+}
+
 /* Compact digit overrides for sticky header */
 .countdown-digit-group.compact .countdown-digit-value {
   font-size: 1.2rem;
