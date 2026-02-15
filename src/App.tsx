@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
-import { Routes, Route, useParams, useNavigate, Navigate } from "react-router-dom";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { Routes, Route, useParams, useNavigate, Navigate, useLocation } from "react-router-dom";
 import "./index.css";
 import predictions from "./data/predictions.json";
 import type { Prediction } from "./data/types";
@@ -73,7 +73,10 @@ function PredictionPage() {
 
   const handleSelect = useCallback((id: number) => {
     const found = allPredictions.find((p) => p.id === id);
-    if (found) navigate(`/${slugify(found)}`);
+    if (found) {
+      skipNextScrollRef.current = true;
+      navigate(`/${slugify(found)}`);
+    }
   }, [navigate]);
 
   const handleRandom = useCallback(() => {
@@ -154,14 +157,32 @@ function PredictionPage() {
   );
 }
 
+/** Ref shared between ScrollToTop and PredictionPage to suppress scroll on timeline nav */
+const skipNextScrollRef = { current: false };
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    if (skipNextScrollRef.current) {
+      skipNextScrollRef.current = false;
+      return;
+    }
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 export function App() {
   return (
-    <Routes>
-      <Route path="/browse" element={<BrowseAll predictions={allPredictions} />} />
-      <Route path="/" element={<PredictionPage />} />
-      <Route path="/:id/*" element={<PredictionPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/browse" element={<BrowseAll predictions={allPredictions} />} />
+        <Route path="/" element={<PredictionPage />} />
+        <Route path="/:id/*" element={<PredictionPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 

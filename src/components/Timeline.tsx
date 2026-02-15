@@ -185,17 +185,78 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     };
   }, [timelinePredictions]);
 
+  // SVG sizing — must be declared before viewport logic that depends on svgWidth
+  const [svgWidth, setSvgWidth] = useState(800);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const resizeRef = useCallback((node: SVGSVGElement | null) => {
+    svgRef.current = node;
+    if (node) {
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setSvgWidth(entry.contentRect.width);
+        }
+      });
+      observer.observe(node);
+      setSvgWidth(node.getBoundingClientRect().width);
+    }
+  }, []);
+
   // Viewport state (the currently visible range)
   const [viewport, setViewport] = useState<{ xMin: number; xMax: number; yMin: number; yMax: number } | null>(null);
 
-  // Initialize viewport from data bounds
-  useEffect(() => {
-    setViewport({ ...dataBounds });
+  const svgHeight = PADDING_TOP + CHART_HEIGHT + PADDING_BOTTOM;
+  const nowYear = new Date().getFullYear() + new Date().getMonth() / 12;
+
+  // Compute the max x-range allowed for a given svgWidth to maintain ≤2:1 x:y
+  // years-per-pixel ratio. When the chart is narrow, this shrinks the x-range.
+  const getMaxXRange = useCallback((width: number) => {
+    const plotWidth = width - PADDING_LEFT - PADDING_RIGHT;
+    const yRange = dataBounds.yMax - dataBounds.yMin;
+    const yPerPx = yRange / CHART_HEIGHT;
+    // Max 2x the y density on x-axis
+    return 2 * yPerPx * plotWidth;
   }, [dataBounds]);
 
-  const vp = viewport ?? dataBounds;
+  // Build a viewport centered on "now" that respects the 2:1 ratio constraint
+  const getConstrainedViewport = useCallback((width: number) => {
+    const maxXRange = getMaxXRange(width);
+    const dataXRange = dataBounds.xMax - dataBounds.xMin;
+    const xRange = Math.min(dataXRange, maxXRange);
 
-  const svgHeight = PADDING_TOP + CHART_HEIGHT + PADDING_BOTTOM;
+    // Center on nowYear, but clamp so we don't show empty space past data bounds
+    let xMin = nowYear - xRange / 2;
+    let xMax = nowYear + xRange / 2;
+    // Clamp to data bounds
+    if (xMin < dataBounds.xMin) { xMin = dataBounds.xMin; xMax = xMin + xRange; }
+    if (xMax > dataBounds.xMax) { xMax = dataBounds.xMax; xMin = xMax - xRange; }
+
+    return { xMin, xMax, yMin: dataBounds.yMin, yMax: dataBounds.yMax };
+  }, [dataBounds, getMaxXRange, nowYear]);
+
+  // Initialize viewport
+  useEffect(() => {
+    setViewport(getConstrainedViewport(svgWidth));
+  }, [dataBounds]); // only on data change, not every svgWidth change
+
+  // When svgWidth changes, enforce the ratio constraint on the current viewport.
+  // Re-center on "now" if the current x-range exceeds the max allowed.
+  useEffect(() => {
+    setViewport((prev) => {
+      if (!prev) return getConstrainedViewport(svgWidth);
+      const maxXRange = getMaxXRange(svgWidth);
+      const currentXRange = prev.xMax - prev.xMin;
+      if (currentXRange <= maxXRange) return prev; // ratio is fine, keep user's viewport
+
+      // Current viewport is too wide for this screen width — shrink centered on "now"
+      let xMin = nowYear - maxXRange / 2;
+      let xMax = nowYear + maxXRange / 2;
+      if (xMin < dataBounds.xMin) { xMin = dataBounds.xMin; xMax = xMin + maxXRange; }
+      if (xMax > dataBounds.xMax) { xMax = dataBounds.xMax; xMin = xMax - maxXRange; }
+      return { ...prev, xMin, xMax };
+    });
+  }, [svgWidth, getMaxXRange, getConstrainedViewport, dataBounds, nowYear]);
+
+  const vp = viewport ?? dataBounds;
 
   const xScale = useCallback(
     (year: number, width: number) => {
@@ -298,25 +359,13 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     return activeTypes.has(canonicalType(type));
   }, [activeTypes]);
 
-  const [svgWidth, setSvgWidth] = useState(800);
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const resizeRef = useCallback((node: SVGSVGElement | null) => {
-    svgRef.current = node;
-    if (node) {
-      const observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          setSvgWidth(entry.contentRect.width);
-        }
-      });
-      observer.observe(node);
-      setSvgWidth(node.getBoundingClientRect().width);
-    }
-  }, []);
-
-  // Zoom handler (wheel / pinch)
+  // Zoom handler — wheel on desktop only, pinch handled via pointer events
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
+
+    // On mobile/touch, skip wheel listener so users can scroll past the chart
+    const isMobile = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
     const onWheel = (e: WheelEvent) => {
       const rect = svg.getBoundingClientRect();
@@ -367,13 +416,29 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       }, dataBounds));
     };
 
-    svg.addEventListener("wheel", onWheel, { passive: false });
-    return () => svg.removeEventListener("wheel", onWheel);
+    // Prevent default browser pinch-zoom when two fingers are on the chart
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length >= 2) e.preventDefault();
+    };
+
+    if (!isMobile) {
+      svg.addEventListener("wheel", onWheel, { passive: false });
+    }
+    svg.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => {
+      svg.removeEventListener("wheel", onWheel);
+      svg.removeEventListener("touchmove", onTouchMove);
+    };
   }, [svgWidth, svgHeight, vp, dataBounds]);
 
-  // Pan handler (drag)
+  // Pan handler (drag) — mouse: single pointer, touch: two fingers
   const isPanning = useRef(false);
   const panStart = useRef({ x: 0, y: 0, vp: vp });
+
+  // Track active pointers for multi-touch gestures
+  const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchStart = useRef<{ dist: number; vp: { xMin: number; xMax: number; yMin: number; yMax: number }; cx: number; cy: number } | null>(null);
+  const isTouchDevice = useRef(false);
 
   const isInPlotArea = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current;
@@ -391,16 +456,55 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     );
   }, [svgWidth, svgHeight]);
 
+  const getTwoFingerCenter = useCallback(() => {
+    const ptrs = Array.from(activePointers.current.values());
+    if (ptrs.length < 2) return null;
+    return { x: (ptrs[0]!.x + ptrs[1]!.x) / 2, y: (ptrs[0]!.y + ptrs[1]!.y) / 2 };
+  }, []);
+
+  const getTwoFingerDist = useCallback(() => {
+    const ptrs = Array.from(activePointers.current.values());
+    if (ptrs.length < 2) return 0;
+    const dx = ptrs[0]!.x - ptrs[1]!.x;
+    const dy = ptrs[0]!.y - ptrs[1]!.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }, []);
+
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     // Only pan on background clicks (not on data points), and only in the plot area
     if ((e.target as SVGElement).closest(".timeline-row")) return;
     if (!isInPlotArea(e.clientX, e.clientY)) return;
+
+    if (e.pointerType === "touch") isTouchDevice.current = true;
+
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    (e.target as SVGElement).setPointerCapture(e.pointerId);
+
+    // Touch: need 2 fingers to start pan/pinch
+    if (e.pointerType === "touch") {
+      if (activePointers.current.size === 2) {
+        // Start two-finger gesture
+        isPanning.current = true;
+        const center = getTwoFingerCenter()!;
+        panStart.current = { x: center.x, y: center.y, vp: { ...vp } };
+        pinchStart.current = {
+          dist: getTwoFingerDist(),
+          vp: { ...vp },
+          cx: center.x,
+          cy: center.y,
+        };
+      }
+      return;
+    }
+
+    // Mouse: single pointer pan
     isPanning.current = true;
     panStart.current = { x: e.clientX, y: e.clientY, vp: { ...vp } };
-    (e.target as SVGElement).setPointerCapture(e.pointerId);
-  }, [vp, isInPlotArea]);
+  }, [vp, isInPlotArea, getTwoFingerCenter, getTwoFingerDist]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
     if (!isPanning.current) return;
     const svg = svgRef.current;
     if (!svg) return;
@@ -409,6 +513,46 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     const scaleX = svgWidth / rect.width;
     const scaleY = svgHeight / rect.height;
 
+    if (e.pointerType === "touch" && activePointers.current.size >= 2) {
+      // Two-finger: pan + pinch zoom
+      const center = getTwoFingerCenter()!;
+      const dist = getTwoFingerDist();
+      const ps = pinchStart.current;
+      if (!ps || ps.dist === 0) return;
+
+      // Pan from center movement
+      const dx = (center.x - panStart.current.x) * scaleX;
+      const dy = (center.y - panStart.current.y) * scaleY;
+      const pv = panStart.current.vp;
+      const plotWidth = svgWidth - PADDING_LEFT - PADDING_RIGHT;
+      const xShift = (dx / plotWidth) * (pv.xMax - pv.xMin);
+      const yShift = (dy / CHART_HEIGHT) * (pv.yMax - pv.yMin);
+
+      // Pinch zoom from distance change
+      const scale = ps.dist / dist; // >1 = zoom out, <1 = zoom in
+      const pvPinch = ps.vp;
+      const xRange = (pvPinch.xMax - pvPinch.xMin) * scale;
+      const yRange = (pvPinch.yMax - pvPinch.yMin) * scale;
+      if (xRange < 2 || yRange < 2 || xRange > 500 || yRange > 500) return;
+
+      // Pinch center in SVG coordinates
+      const pcx = (ps.cx - rect.left) * scaleX;
+      const pcy = (ps.cy - rect.top) * scaleY;
+      const fx = (pcx - PADDING_LEFT) / plotWidth;
+      const fy = (PADDING_TOP + CHART_HEIGHT - pcy) / CHART_HEIGHT;
+      const yearCX = pvPinch.xMin + fx * (pvPinch.xMax - pvPinch.xMin);
+      const yearCY = pvPinch.yMin + fy * (pvPinch.yMax - pvPinch.yMin);
+
+      setViewport(clampViewport({
+        xMin: yearCX - fx * xRange - xShift,
+        xMax: yearCX + (1 - fx) * xRange - xShift,
+        yMin: yearCY - fy * yRange + yShift,
+        yMax: yearCY + (1 - fy) * yRange + yShift,
+      }, dataBounds));
+      return;
+    }
+
+    // Mouse pan
     const dx = (e.clientX - panStart.current.x) * scaleX;
     const dy = (e.clientY - panStart.current.y) * scaleY;
 
@@ -423,16 +567,20 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       yMin: pv.yMin + yShift, // inverted Y
       yMax: pv.yMax + yShift,
     }, dataBounds));
-  }, [svgWidth, svgHeight, dataBounds]);
+  }, [svgWidth, svgHeight, dataBounds, getTwoFingerCenter, getTwoFingerDist]);
 
-  const onPointerUp = useCallback(() => {
-    isPanning.current = false;
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    activePointers.current.delete(e.pointerId);
+    if (activePointers.current.size < 2) {
+      isPanning.current = false;
+      pinchStart.current = null;
+    }
   }, []);
 
   // Double-click to reset
   const onDoubleClick = useCallback(() => {
-    setViewport({ ...dataBounds });
-  }, [dataBounds]);
+    setViewport(getConstrainedViewport(svgWidth));
+  }, [getConstrainedViewport, svgWidth]);
 
   return (
     <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-4 overflow-hidden" ref={containerRef}>
@@ -470,7 +618,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
           onDoubleClick={onDoubleClick}
-          style={{ touchAction: "none", cursor: "default", userSelect: "none" }}
+          style={{ touchAction: "pan-y", cursor: "default", userSelect: "none" }}
         >
           {/* Clip path for chart area */}
           <defs>
@@ -730,7 +878,8 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       </div>
 
       <div className="flex items-center justify-center gap-3 mt-1.5">
-        <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none">Scroll to zoom · Drag to pan · Double-click to reset · Click legend to filter</span>
+        <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none hidden sm:inline">Scroll to zoom · Drag to pan · Double-click to reset · Click legend to filter</span>
+        <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none sm:hidden">Pinch to zoom · Two fingers to pan · Double-tap to reset</span>
         <button
           className="text-[0.65rem] text-(--text-dim) opacity-50 hover:opacity-80 cursor-pointer transition-opacity select-none"
           onClick={startAnimation}

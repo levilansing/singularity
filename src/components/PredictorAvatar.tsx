@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface PredictorAvatarProps {
   name: string;
@@ -31,6 +31,11 @@ const sizeClasses = {
 
 export function PredictorAvatar({ name, headshotLocal, size = "md" }: PredictorAvatarProps) {
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [headshotLocal]);
+
   const hasImage = headshotLocal && !imgError;
 
   if (hasImage) {

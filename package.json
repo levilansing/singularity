@@ -7,7 +7,8 @@
     "dev": "bun --watch src/index.tsx",
     "start": "NODE_ENV=production bun src/index.tsx",
     "build": "bun run build.ts",
-    "deploy": "bun run build && bunx wrangler pages deploy dist --project-name=singularity-countdown"
+    "deploy": "bun run build && bunx wrangler pages deploy dist --project-name=singularity-countdown",
+    "generate-headline-slugs": "bun run scripts/generate-headline-slugs.ts"
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.2.6",

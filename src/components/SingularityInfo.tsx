@@ -257,6 +257,7 @@ function CrowdEstimateBadge({ result }: { result: WeightedResult }) {
 export function TypeCarousel() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const active = EVENT_TYPES[activeIdx]!;
   const averages = useMemo(computeWeightedAverages, []);
 
@@ -269,7 +270,7 @@ export function TypeCarousel() {
         {EVENT_TYPES.map((t, i) => (
           <button
             key={t.id}
-            onClick={() => setActiveIdx(i)}
+            onClick={() => { setActiveIdx(i); setDetailsOpen(false); }}
             onMouseEnter={() => setHoveredIdx(i)}
             onMouseLeave={() => setHoveredIdx(null)}
             className="px-3 py-1.5 rounded-full text-[0.75rem] font-mono font-medium cursor-pointer transition-all duration-200 border"
@@ -323,15 +324,6 @@ export function TypeCarousel() {
           ))}
         </div>
 
-        {/* Technical Details - always visible */}
-        <div className="mt-4 rounded-lg border border-[#ffffff0a] p-4" style={{ background: `${active.color}05` }}>
-          <div className="flex items-center gap-2 mb-2">
-            <span style={{ color: active.color }}><GearIcon /></span>
-            <span className="font-mono text-[0.8rem] font-bold" style={{ color: active.color }}>Technical Details</span>
-          </div>
-          <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{active.techDetails}</p>
-        </div>
-
         {/* Fun Fact - always visible */}
         <div className="mt-3 rounded-lg border border-[#ffffff0a] p-4" style={{ background: `${active.color}05` }}>
           <div className="flex items-center gap-2 mb-2">
@@ -341,10 +333,32 @@ export function TypeCarousel() {
           <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{active.funFact}</p>
         </div>
 
+        {/* More Details - accordion, closed by default */}
+        <div className="mt-4 rounded-lg border border-[#ffffff0a]" style={{ background: `${active.color}05` }}>
+          <button
+            onClick={() => setDetailsOpen(!detailsOpen)}
+            className="flex items-center gap-2 w-full p-4 cursor-pointer text-left bg-transparent border-none"
+          >
+            <span style={{ color: active.color }}><GearIcon /></span>
+            <span className="font-mono text-[0.8rem] font-bold flex-1" style={{ color: active.color }}>More Details</span>
+            <span
+              className="text-[0.75rem] transition-transform duration-200"
+              style={{ color: `${active.color}80`, transform: detailsOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+            >
+              ▼
+            </span>
+          </button>
+          {detailsOpen && (
+            <div className="px-4 pb-4">
+              <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{active.techDetails}</p>
+            </div>
+          )}
+        </div>
+
         {/* Nav arrows */}
         <div className="flex justify-between items-center mt-4 pt-3 border-t border-[#ffffff06]">
           <button
-            onClick={() => setActiveIdx((activeIdx - 1 + EVENT_TYPES.length) % EVENT_TYPES.length)}
+            onClick={() => { setActiveIdx((activeIdx - 1 + EVENT_TYPES.length) % EVENT_TYPES.length); setDetailsOpen(false); }}
             className="text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono"
           >
             ← {EVENT_TYPES[(activeIdx - 1 + EVENT_TYPES.length) % EVENT_TYPES.length]!.label}
@@ -353,7 +367,7 @@ export function TypeCarousel() {
             {activeIdx + 1}/{EVENT_TYPES.length}
           </span>
           <button
-            onClick={() => setActiveIdx((activeIdx + 1) % EVENT_TYPES.length)}
+            onClick={() => { setActiveIdx((activeIdx + 1) % EVENT_TYPES.length); setDetailsOpen(false); }}
             className="text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono"
           >
             {EVENT_TYPES[(activeIdx + 1) % EVENT_TYPES.length]!.label} →
@@ -890,7 +904,7 @@ export function SingularityInfo() {
 export function ShouldIBeWorried() {
   return (
     <section>
-      <SectionHeader title="So... Should I Be Worried?" subtitle="The honest answer, for what it's worth" />
+      <SectionHeader title="So... Should I Be Worried?" />
 
       <div className="singularity-info-content bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
         <div className="flex gap-6 max-sm:flex-col">

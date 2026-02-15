@@ -4,7 +4,7 @@ import type { Prediction } from "../src/data/types";
 import { slugify } from "../src/data/types";
 import path from "path";
 
-const DOMAIN = process.env.SITE_DOMAIN ?? "https://singularitycountdown.com";
+const DOMAIN = process.env.SITE_DOMAIN ?? "https://when-is-the-singularity.com";
 const outdir = process.argv[2] || path.join(process.cwd(), "dist");
 
 const allPredictions = predictions as Prediction[];

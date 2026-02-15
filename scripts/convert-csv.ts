@@ -44,6 +44,15 @@ function extractYear(dateStr: string): number | null {
   return isNaN(year) ? null : year;
 }
 
+/** Slugify text: remove apostrophes, lowercase, non-alphanumeric → hyphens, trim hyphens */
+function slugifyText(text: string): string {
+  return (text ?? "")
+    .replace(/[\u0027\u2018\u2019]/g, "") // remove apostrophes (straight + curly)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function deriveConceptKeys(row: Record<string, string>): string[] {
   const keys = new Set<string>();
   const text = [
@@ -122,11 +131,15 @@ const predictions = lines.slice(1).map((line) => {
       : null;
 
   // Derive local headshot path from predictor name
-  const slug = (row.predictor_name ?? "")
+  const headshotSlug = (row.predictor_name ?? "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_|_$/g, "");
-  const headshot_local = `/headshots/${slug}.jpg`;
+  const headshot_local = `/headshots/${headshotSlug}.jpg`;
+
+  // Headline slug from CSV (slugified: lowercase, hyphens) or fallback from headline
+  const headlineSlugRaw = row.headline_slug ?? row.headline ?? "";
+  const headline_slug = slugifyText(headlineSlugRaw);
 
   return {
     id: parseInt(row.id, 10),
@@ -148,6 +161,7 @@ const predictions = lines.slice(1).map((line) => {
     source_name: row.source_name,
     source_url: row.source_url,
     headline: row.headline,
+    headline_slug,
     tldr_summary: row.tldr_summary,
     graphic_url: row.graphic_url,
     target_date,

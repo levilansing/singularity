@@ -19,6 +19,7 @@ export interface Prediction {
   source_url: string;
   headshot_url: string;
   headline: string;
+  headline_slug: string;
   tldr_summary: string;
   graphic_url: string;
   target_date: string | null;
@@ -27,11 +28,7 @@ export interface Prediction {
 }
 
 export function slugify(prediction: Prediction): string {
-  const base = prediction.headline
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `${prediction.id}/${base}`;
+  return `${prediction.id}/${prediction.headline_slug}`;
 }
 
 /** Convert a date string (YYYY-MM-DD or YYYY) to a fractional year for plotting */

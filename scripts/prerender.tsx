@@ -10,7 +10,7 @@ import path from "path";
 
 const outdir = process.argv[2] || path.join(process.cwd(), "dist");
 const allPredictions = predictions as Prediction[];
-const DOMAIN = "https://singularitycountdown.com";
+const DOMAIN = "https://when-is-the-singularity.com";
 
 // ---------------------------------------------------------------------------
 // 1. Read the built index.html to extract hashed chunk filenames
