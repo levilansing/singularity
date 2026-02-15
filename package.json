@@ -10,7 +10,6 @@
     "deploy": "bun run build && bunx wrangler pages deploy dist --project-name=singularity-countdown"
   },
   "dependencies": {
-    "@genwave/svgmaker-mcp": "^0.3.1",
     "@radix-ui/react-select": "^2.2.6",
     "bun-plugin-tailwind": "^0.0.15",
     "class-variance-authority": "^0.7.1",
@@ -22,6 +21,7 @@
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
+    "@genwave/svgmaker-mcp": "^0.3.1",
     "@types/bun": "latest",
     "@types/react": "^19",
     "@types/react-dom": "^19"
