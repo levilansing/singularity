@@ -30,6 +30,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
       <div className="flex items-center gap-4 mb-5">
         <div className="shrink-0 size-14 rounded-full overflow-hidden">
           <PredictorAvatar
+            key={prediction.id}
             name={prediction.predictor_name}
             headshotLocal={prediction.headshot_local}
           />

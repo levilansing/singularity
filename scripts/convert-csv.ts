@@ -127,7 +127,7 @@ const predictions = lines.slice(1).map((line) => {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_|_$/g, "");
-  const headshot_local = row.headshot_url ? `/headshots/${slug}.jpg` : null;
+  const headshot_local = `/headshots/${slug}.jpg`;
 
   return {
     id: parseInt(row.id, 10),
@@ -148,7 +148,6 @@ const predictions = lines.slice(1).map((line) => {
     criteria_definition: row.criteria_definition,
     source_name: row.source_name,
     source_url: row.source_url,
-    headshot_url: row.headshot_url,
     headline: row.headline,
     tldr_summary: row.tldr_summary,
     graphic_url: row.graphic_url,

@@ -35,4 +35,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # scripts/ headshot processor output and venv
 scripts/headshots
+scripts/headshots_staging
 scripts/.venv
