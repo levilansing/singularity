@@ -3,13 +3,15 @@ import { getHeadshotPath } from "../data/types";
 import { getTypeBadge, getConfidenceBadge } from "../data/colors";
 import { PredictorAvatar } from "./PredictorAvatar";
 import { ShareButton } from "./ShareButton";
+import { ShuffleIcon } from "./ShuffleIcon";
 
 interface PredictionCardProps {
   prediction: PredictionSlim;
   detail: PredictionDetail | null;
+  onRandom?: () => void;
 }
 
-export function PredictionCard({ prediction, detail }: PredictionCardProps) {
+export function PredictionCard({ prediction, detail, onRandom }: PredictionCardProps) {
   const predictionYear = prediction.prediction_date.length === 4
     ? prediction.prediction_date
     : new Date(prediction.prediction_date).toLocaleDateString("en-US", { year: "numeric", month: "short" });
@@ -18,7 +20,7 @@ export function PredictionCard({ prediction, detail }: PredictionCardProps) {
     ? prediction.predicted_year_best.toString()
     : prediction.predicted_date_best
       ? new Date(prediction.predicted_date_best).getFullYear().toString()
-      : "Undefined";
+      : "—";
 
   const displayType = prediction.prediction_type.startsWith("AGI")
     ? "AGI"
@@ -27,7 +29,18 @@ export function PredictionCard({ prediction, detail }: PredictionCardProps) {
       : prediction.prediction_type;
 
   return (
-    <div className="bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
+    <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
+      {/* Shuffle button — top right */}
+      {onRandom && (
+        <button
+          onClick={onRandom}
+          className="absolute top-4 right-4 max-sm:top-3 max-sm:right-3 flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity cursor-pointer bg-transparent border border-[#ffffff10] hover:border-[#ffffff20] rounded-lg px-3 py-1.5 font-inherit text-(--text-muted)"
+        >
+          <ShuffleIcon size={14} />
+          <span className="text-[0.75rem] font-mono max-sm:hidden">see another prediction</span>
+        </button>
+      )}
+
       {/* Predictor header */}
       <div className="flex items-center gap-4 mb-5">
         <div className="shrink-0 size-14 rounded-full overflow-hidden">

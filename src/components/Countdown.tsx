@@ -60,9 +60,9 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
       </div>
 
       {isPhilosophical && (
-        <div className="py-6 flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-1 mb-4 h-[75px]">
           <div className="relative flex items-center justify-center">
-            <span className="infinity-symbol">∞</span>
+            <span className="infinity-symbol -mt-8 -mb-3">∞</span>
           </div>
           <div className="flex gap-8 font-mono text-[0.7rem] uppercase tracking-widest text-(--text-dim) max-sm:gap-4 max-sm:text-[0.6rem]">
             <span>Days</span>
@@ -76,7 +76,7 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
 
       {!isPhilosophical && initialTime && (() => {
         const hasYears = initialTime.years !== 0;
-        const sepClass = `countdown-separator font-mono ${hasYears ? "text-[clamp(1.5rem,4.5vw,3rem)]" : "text-[clamp(2rem,6vw,4rem)]"} font-bold text-(--text-dim) leading-none pt-[0.1em] shrink-0`;
+        const sepClass = `countdown-separator font-mono h-[75px] ${hasYears ? "text-[clamp(1.5rem,4.5vw,3rem)]" : "text-[clamp(2rem,6vw,4rem)]"} font-bold text-(--text-dim) leading-none pt-[0.1em] shrink-0`;
         return (
           <div ref={containerRef} className={`flex flex-row justify-center items-start gap-1 mb-4 max-sm:gap-[0.1rem] ${hasYears ? "countdown-has-years" : ""}`}>
             {hasYears && (
@@ -99,9 +99,9 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
       })()}
 
       {!isPhilosophical && !initialTime && (
-        <div className="font-mono text-2xl text-(--text-muted) py-8">
-          <p>No specific date predicted</p>
-          <p className="text-[0.9rem] text-(--text-dim) mt-2">Just vibes and existential dread</p>
+        <div className="flex flex-col items-center justify-center mb-4" style={{ minHeight: "clamp(3.5rem, 8vw, 5.5rem)" }}>
+          <div className="font-mono text-[clamp(1.4rem,4vw,2.2rem)] font-bold text-(--text-dim) leading-none">¯\_(ツ)_/¯</div>
+          <div className="font-mono text-[0.7rem] uppercase tracking-widest text-(--text-dim) mt-3">No date specified</div>
         </div>
       )}
 

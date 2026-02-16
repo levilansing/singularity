@@ -70,7 +70,7 @@ export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
         })()}
         <div className="flex flex-col gap-0.5 max-sm:text-center">
           <span className="text-[0.7rem] uppercase tracking-[0.1em] text-(--text-muted) max-sm:hidden">
-            {isPhilosophical ? "Beyond time" : isPast ? "Since" : "Until"} {isPhilosophical ? "" : "the singularity"}
+            {isPhilosophical ? "Eventually" : isPast ? "Since" : "Until"} {isPhilosophical ? "" : "the singularity"}
           </span>
           <span className="sticky-header-prediction text-[0.85rem] text-(--text-muted) flex items-center gap-2">
             <span>

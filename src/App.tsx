@@ -84,6 +84,7 @@ function PredictionPage() {
   }, [navigate]);
 
   const handleRandom = useCallback(() => {
+    skipNextScrollRef.current = true;
     navigate(`/${slugify(pickRandom())}`);
   }, [navigate]);
 
@@ -126,7 +127,7 @@ function PredictionPage() {
           <FadeInSection className="-mt-16 max-sm:-mt-6">
             {selected ? (
               <>
-                <PredictionCard prediction={selected} detail={detail} />
+                <PredictionCard prediction={selected} detail={detail} onRandom={handleRandom} />
                 <Suspense fallback={null}>
                   <ConceptBlurbs conceptKeys={detail?.concept_keys} />
                 </Suspense>

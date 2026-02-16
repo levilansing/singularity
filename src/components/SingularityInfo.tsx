@@ -797,6 +797,26 @@ export function PredictionDrift() {
           Median &amp; IQR per year (min 5 predictions). Sparse years use an adaptive rolling window. Click a type to isolate.
         </p>
       </div>
+
+      {/* Explainer blurb */}
+      <div className="singularity-info-content mt-6 bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">
+        <p>
+          Every year, experts say we have <em>less</em> time left — and they're not
+          revising gradually. The predictions are accelerating faster than the
+          technology they're predicting.
+        </p>
+        <p>
+          Every generation of AI researchers since the 1960s has predicted human-level AI
+          within 20 years — and been wrong. But the current shift is structurally different:
+          it's driven by <em>demonstrated capabilities</em>, not theoretical arguments. Industry
+          leaders with direct access to frontier models cluster years ahead of academic surveys.
+          Whether that gap reflects genuine information advantage or commercial incentive is the
+          trillion-dollar question.
+        </p>
+        <p className="text-(--text-dim)! text-[0.78rem]! font-mono italic">
+          History favors caution. But history has also never seen capability curves quite like these.
+        </p>
+      </div>
     </section>
   );
 }
