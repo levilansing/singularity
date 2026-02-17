@@ -55,7 +55,7 @@ function buildHtml({
     ogDescription ? `<meta property="og:description" content="${escapeAttr(ogDescription)}">` : "",
     ogUrl ? `<meta property="og:url" content="${escapeAttr(ogUrl)}">` : "",
     `<meta property="og:type" content="website">`,
-    `<meta property="og:site_name" content="Singularity Countdown">`,
+    `<meta property="og:site_name" content="When is the Singularity?">`,
   ].filter(Boolean).join("\n    ");
 
   return `<!doctype html>
@@ -121,9 +121,9 @@ let count = 0;
 
 // Home page — skeletons for prediction content, everything else pre-rendered
 await renderRoute("/", path.join(outdir, "index.html"), {
-  title: "The Singularity is Coming — AI Singularity Countdown",
+  title: "Are We Obsolete Yet? — When is the AI singularity?",
   description: `Tracking humanity's most confident guesses about its own obsolescence. ${allPredictions.length} predictions from notable people, organizations, and prediction markets.`,
-  ogTitle: "The Singularity is Coming",
+  ogTitle: "Are We Obsolete Yet?",
   ogDescription: `${allPredictions.length} predictions about when AI surpasses humanity. How much time do we have left?`,
   ogUrl: DOMAIN + "/",
   urgencyClass: "urgency-far",
@@ -132,7 +132,7 @@ count++;
 
 // Browse page
 await renderRoute("/browse", path.join(outdir, "browse", "index.html"), {
-  title: `Browse All ${allPredictions.length} Predictions — Singularity Countdown`,
+  title: `Browse All ${allPredictions.length} Predictions — When is the AI singularity?`,
   description: "Every confident guess about the end of human supremacy, sortable and filterable by type, date, and confidence level.",
   ogTitle: `All ${allPredictions.length} Singularity Predictions`,
   ogDescription: "Browse every prediction about when AI surpasses human intelligence.",
@@ -149,7 +149,7 @@ for (const p of allPredictions) {
   const yearStr = p.predicted_year_best ? `by ${p.predicted_year_best}` : "";
 
   await renderRoute(`/${slug}`, path.join(outdir, ...slug.split("/"), "index.html"), {
-    title: `${p.predictor_name} predicts ${typeLabel} ${yearStr} — Singularity Countdown`.replace(/\s+/g, " ").trim(),
+    title: `${p.predictor_name} predicts ${typeLabel} ${yearStr} — When is the AI singularity?`.replace(/\s+/g, " ").trim(),
     description: p.tldr_summary,
     ogTitle: `${p.predictor_name} predicts ${typeLabel} ${yearStr}`.replace(/\s+/g, " ").trim(),
     ogDescription: p.headline,

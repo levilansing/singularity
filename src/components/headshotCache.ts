@@ -6,27 +6,25 @@
  */
 
 type CacheEntry =
-  | { status: "loading"; listeners: Set<() => void> }
-  | { status: "loaded"; src: string }
+  | { status: "loading"; img: HTMLImageElement; listeners: Set<() => void> }
+  | { status: "loaded" }
   | { status: "error" };
 
 const cache = new Map<string, CacheEntry>();
 
 /** Start loading a headshot (if not already in-flight) and return its current status. */
 export function getHeadshot(src: string): "loading" | "loaded" | "error" {
-  // During SSR, Image isn't available — report loading and let the client hydrate
   if (typeof window === "undefined") return "loading";
 
   const entry = cache.get(src);
   if (entry) return entry.status;
 
-  // Start loading
   const listeners = new Set<() => void>();
-  cache.set(src, { status: "loading", listeners });
-
   const img = new window.Image();
+  cache.set(src, { status: "loading", img, listeners });
+
   img.onload = () => {
-    cache.set(src, { status: "loaded", src });
+    cache.set(src, { status: "loaded" });
     for (const fn of listeners) fn();
   };
   img.onerror = () => {
@@ -45,6 +43,5 @@ export function subscribeHeadshot(src: string, cb: () => void): () => void {
     entry.listeners.add(cb);
     return () => entry.listeners.delete(cb);
   }
-  // Already resolved — nothing to subscribe to
   return () => {};
 }

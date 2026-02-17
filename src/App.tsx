@@ -34,6 +34,19 @@ function pickRandom(): PredictionSlim {
 function PredictionPage() {
   const { id, "*": rest } = useParams();
   const navigate = useNavigate();
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  // Pause gradient animation when title is scrolled off-screen
+  useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => el.classList.toggle("offscreen", !entry?.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const numericId = id ? parseInt(id, 10) : NaN;
   const prediction = !isNaN(numericId) ? idMap.get(numericId) : undefined;
@@ -95,6 +108,14 @@ function PredictionPage() {
     };
   }, [urgency]);
 
+  // Update page title on client-side navigation
+  useEffect(() => {
+    if (!selected || !id) return;
+    const type = selected.prediction_type.startsWith("AGI") ? "AGI" : selected.prediction_type === "HLMI" ? "human-level AI" : selected.prediction_type.toLowerCase();
+    const year = selected.predicted_year_best ? `by ${selected.predicted_year_best}` : "";
+    document.title = `${selected.predictor_name} predicts ${type} ${year} — When is the AI singularity?`.replace(/\s+/g, " ").trim();
+  }, [selected]);
+
   // For invalid id routes, render nothing while the redirect effect fires
   if (id && !prediction) return null;
 
@@ -102,7 +123,7 @@ function PredictionPage() {
     <>
       {selected && <StickyHeader prediction={selected} onRandom={handleRandom} />}
       <header className="text-center pt-14 mb-12 max-sm:pt-8 max-sm:mb-8">
-        <h1 className="animated-gradient-text font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 tracking-tight text-center">The Singularity<br className="sm:hidden" /> is Coming</h1>
+        <h1 ref={titleRef} className="animated-gradient-text font-mono text-[clamp(1.8rem,5vw,3rem)] font-bold m-0 tracking-tight text-center">The Singularity<br className="sm:hidden" /> is Coming</h1>
         <p className="text-[#c084fcaa] text-[0.95rem] m-0 italic text-center mt-1">Tracking humanity's most confident<br className="sm:hidden" /> guesses about its own obsolescence</p>
       </header>
 

@@ -63,8 +63,8 @@ export function StickyHeader({ prediction, onRandom }: StickyHeaderProps) {
               <CountdownDigit unit="minutes" initialValue={initialTime.minutes} label="M" urgency={urgency} compact />
               <span className={sepClass}>:</span>
               <CountdownDigit unit="seconds" initialValue={initialTime.seconds} label="S" urgency={urgency} compact />
-              <span className={sepClass}>.</span>
-              <MillisecondsDisplayCompact key={prediction.id} />
+              {/* <span className={sepClass}>.</span>
+              <MillisecondsDisplayCompact /> */}
             </div>
           );
         })()}

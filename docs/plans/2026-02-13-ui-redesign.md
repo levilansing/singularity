@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Redesign the singularity countdown site with improved info card layout, section graphics, favicon/logo, always-visible content sections, and engagement features (share, wrong badge, scroll animations).
+**Goal:** Redesign the "When is the Singularity?" site with improved info card layout, section graphics, favicon/logo, always-visible content sections, and engagement features (share, wrong badge, scroll animations).
 
 **Architecture:** Component-level changes to existing React SPA. New SVG assets generated via svgmaker (logo, section illustrations) and hand-coded (favicon, small icons). New utility components for share button and scroll animation wrapper. All styling via Tailwind + existing CSS custom properties.
 

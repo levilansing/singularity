@@ -204,6 +204,10 @@ body.urgency-philosophical {
   animation: gradient-shift 6s linear infinite;
 }
 
+.animated-gradient-text.offscreen {
+  animation-play-state: paused;
+}
+
 @keyframes gradient-shift {
   0% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
@@ -262,7 +266,6 @@ body.urgency-philosophical {
   flex-direction: column;
   width: 1ch;
   will-change: transform;
-  animation: ms-scroll 1s steps(10) infinite reverse;
 }
 
 .ms-strip > span {
@@ -272,15 +275,6 @@ body.urgency-philosophical {
   height: var(--digit-h);
   flex-shrink: 0;
   line-height: 1;
-}
-
-.ms-hundreds { animation-duration: 1s; }
-.ms-tens { animation-duration: 0.1s; }
-.ms-ones { animation-duration: 0.01s; }
-
-@keyframes ms-scroll {
-  /* 10 digits × var(--digit-h) each; em units avoid % calc issues */
-  to { transform: translateY(calc(var(--digit-h) * -10)); }
 }
 
 /* ── Timeline row hover ── */
