@@ -428,13 +428,22 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       if (e.touches.length >= 2) e.preventDefault();
     };
 
+    const container = containerRef.current;
+
     if (!isMobile) {
       svg.addEventListener("wheel", onWheel, { passive: false });
     }
+    // Prevent browser pinch-zoom on both SVG and container (for mobile full-card touch)
     svg.addEventListener("touchmove", onTouchMove, { passive: false });
+    if (container) {
+      container.addEventListener("touchmove", onTouchMove, { passive: false });
+    }
     return () => {
       svg.removeEventListener("wheel", onWheel);
       svg.removeEventListener("touchmove", onTouchMove);
+      if (container) {
+        container.removeEventListener("touchmove", onTouchMove);
+      }
     };
   }, [svgWidth, svgHeight, vp, dataBounds]);
 
@@ -478,14 +487,15 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    // Only pan on background clicks (not on data points), and only in the plot area
-    if ((e.target as SVGElement).closest(".timeline-row")) return;
-    if (!isInPlotArea(e.clientX, e.clientY)) return;
+    // Only pan on background clicks (not on data points)
+    if ((e.target as SVGElement).closest?.(".timeline-row")) return;
+    // On desktop, confine interactions to the plot area; on mobile, allow anywhere on the card
+    if (e.pointerType !== "touch" && !isInPlotArea(e.clientX, e.clientY)) return;
 
     if (e.pointerType === "touch") isTouchDevice.current = true;
 
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    (e.target as SVGElement).setPointerCapture(e.pointerId);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
     // Touch: need 2 fingers to start pan/pinch
     if (e.pointerType === "touch") {
@@ -609,7 +619,15 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   }, [getConstrainedViewport, svgWidth]);
 
   return (
-    <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-4 overflow-hidden max-sm:-mx-3 max-sm:rounded-none max-sm:border-x-0 max-sm:px-2" ref={containerRef}>
+    <div
+      className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-4 overflow-hidden max-sm:-mx-3 max-sm:rounded-none max-sm:border-x-0 max-sm:px-2"
+      ref={containerRef}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      style={{ touchAction: "pan-y" }}
+    >
       {/* Legend — clickable to filter */}
       <div className="flex flex-wrap gap-3 justify-center mb-3 text-xs">
         {TYPE_LEGEND_ORDER.map((type) => {
@@ -639,12 +657,8 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
           ref={resizeRef}
           className="w-full h-auto block flex-1 min-w-0"
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
           onDoubleClick={onDoubleClick}
-          style={{ touchAction: "pan-y", cursor: "default", userSelect: "none" }}
+          style={{ cursor: "default", userSelect: "none" }}
         >
           {/* Clip path for chart area */}
           <defs>

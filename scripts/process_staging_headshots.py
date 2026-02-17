@@ -29,8 +29,10 @@ except ImportError:
 TARGET_SIZE = 300
 IDEAL_FACE_FRAC_MIN = 0.22
 IDEAL_FACE_FRAC_MAX = 0.45
-CROP_FACE_SCALE = 2.6
-FACE_OFFSET_UP = 0.35
+# Slightly larger crop to include full head (face detector often misses forehead)
+CROP_FACE_SCALE = 2.8
+# Higher = crop center shifts up, more headroom (avoids cutting off top of head)
+FACE_OFFSET_UP = 0.55
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_STAGING_DIR = SCRIPT_DIR / "headshots_staging"

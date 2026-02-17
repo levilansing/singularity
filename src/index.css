@@ -193,18 +193,19 @@ body.urgency-philosophical {
     #c084fc,
     #67e8f9,
     #a78bfa,
-    #e879a8
+    #e879a8,
+    #c084fc,
+    #67e8f9
   );
   background-size: 300% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: gradient-shift 6s ease infinite;
+  animation: gradient-shift 6s linear infinite;
 }
 
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
@@ -225,12 +226,12 @@ body.urgency-philosophical {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: infinity-shimmer 4s ease-in-out infinite;
+  animation: infinity-shimmer 4s linear infinite;
 }
 
 @keyframes infinity-shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }
 
 @keyframes fadeIn {

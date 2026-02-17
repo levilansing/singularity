@@ -7,6 +7,7 @@
     "dev": "bun --watch src/index.tsx",
     "start": "bun run build && bun scripts/serve-dist.ts",
     "build": "bun run build.ts",
+    "update-data": "bun run scripts/convert-csv.ts",
     "deploy": "bun run build && bunx wrangler pages deploy dist --project-name=singularity-countdown",
     "generate-headline-slugs": "bun run scripts/generate-headline-slugs.ts"
   },

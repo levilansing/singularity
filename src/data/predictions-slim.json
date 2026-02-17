@@ -3220,5 +3220,23 @@
     "headline": "Engineer Calculates Exact Singularity Date Using Hyperbolic Curve-Fitting: Tuesday July 18 2034",
     "headline_slug": "engineer-pins-down-ai-singularity-date",
     "target_date": "2034-07-18T00:00:00Z"
+  },
+  {
+    "id": 181,
+    "predictor_name": "Alan Turing",
+    "predictor_type": "AI Researcher",
+    "prediction_date": "1950-10-01",
+    "predicted_date_low": "2000-01-01",
+    "predicted_date_high": "2000-12-31",
+    "predicted_date_best": "2000-07-01",
+    "predicted_year_low": 2000,
+    "predicted_year_high": 2000,
+    "predicted_year_best": 2000,
+    "prediction_type": "HLMI",
+    "confidence_type": "medium",
+    "confidence_label": "Prophetically Patient",
+    "headline": "The Father of Computer Science Predicts Machines Will Think by 2000 — Misses by a Bit",
+    "headline_slug": "",
+    "target_date": "2000-07-01T00:00:00Z"
   }
 ]

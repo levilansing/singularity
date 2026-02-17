@@ -4920,5 +4920,32 @@
     "headline_slug": "engineer-pins-down-ai-singularity-date",
     "tldr_summary": "Engineer and self-described optimist Cam Pedersen fitted hyperbolic curves to five AI progress metrics and discovered something unsettling: only one is actually going hyperbolic, and it's not machine capability. The singularity date of Tuesday July 18 2034 comes from tracking arXiv papers about AI emergence—meaning the metric accelerating toward infinity is human attention to AI surprises, not AI performance itself. The machines are improving linearly; we're the ones losing our minds exponentially. Pedersen defines his 'singularity' not as superintelligence but as tst: the moment when AI surprises arrive faster than humans can process them. Plot twist: while the math points to 2034, he argues the social consequences (labor displacement, institutional failure, epistemic collapse) are already happening in 2026. The real singularity is when you realize the singularity is a human perceptual crisis, not a robot apocalypse.",
     "target_date": "2034-07-18T00:00:00Z"
+  },
+  {
+    "id": 181,
+    "predictor_name": "Alan Turing",
+    "predictor_type": "AI Researcher",
+    "prediction_date": "1950-10-01",
+    "predicted_date_low": "2000-01-01",
+    "predicted_date_high": "2000-12-31",
+    "predicted_date_best": "2000-07-01",
+    "predicted_year_low": 2000,
+    "predicted_year_high": 2000,
+    "predicted_year_best": 2000,
+    "prediction_type": "HLMI",
+    "confidence_level": "Moderate - presented as personal belief with explicit acknowledgment it was conjecture, not proven fact",
+    "confidence_label": "Prophetically Patient",
+    "confidence_type": "medium",
+    "concept_keys": [
+      "agi",
+      "turing-test"
+    ],
+    "criteria_definition": "A computer with ~10⁹ bits of storage plays the imitation game (Turing Test) well enough that an average interrogator has no more than 70% chance of correct identification after 5 minutes of questioning",
+    "source_name": "Mind (journal)",
+    "source_url": "https://courses.cs.umbc.edu/471/papers/turing.pdf",
+    "headline": "The Father of Computer Science Predicts Machines Will Think by 2000 — Misses by a Bit",
+    "headline_slug": "",
+    "tldr_summary": "In the paper that launched a thousand AI dissertations, Alan Turing — codebreaker, father of computer science, and the man who formalized the very concept of computation — proposed replacing 'Can machines think?' with something testable: can a machine fool a human interrogator in a five-minute text conversation at least 30% of the time? Writing in the journal Mind in October 1950, Turing predicted that in 'about fifty years' time' (i.e., around 2000), computers with about a gigabit of storage could pass this test. He also predicted that by century's end, people would casually speak of machines thinking 'without expecting to be contradicted.' He was remarkably right about the storage (a gigabit was trivial by 2000) but optimistic about the conversation part — it took until the 2020s for LLMs to make that plausible. Turing was refreshingly honest that these were conjectures, not proofs, noting that 'no useful purpose is served by concealing these beliefs.' The paper also contains his delightfully bizarre consideration of ESP as the strongest objection to machine intelligence.",
+    "target_date": "2000-07-01T00:00:00Z"
   }
 ]
