@@ -55,7 +55,7 @@ export function TimelineTooltip({ prediction, x, y }: TimelineTooltipProps) {
 
   return (
     <div
-      className="absolute pointer-events-none bg-[#1a1a28ee] border border-[#ffffff20] rounded-lg px-3 py-2.5 w-[320px] z-50 text-[0.8rem] shadow-[0_4px_20px_#00000060]"
+      className="absolute pointer-events-none bg-[#1a1a28ee] border border-[#ffffff20] rounded-lg px-3 py-2.5 w-[320px] md:w-[380px] z-50 text-[0.8rem] shadow-[0_4px_20px_#00000060]"
       style={{
         left: x,
         top: y,
