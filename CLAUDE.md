@@ -28,7 +28,7 @@ Copy should be sarcastic, fun, and informative. The page should be interactive a
 
 ## Architecture
 
-**Server**: `src/index.tsx` — Bun.serve with HTML imports, serves `src/index.html` as SPA with static file routes for headshots.
+**Server**: `src/index.tsx` — Bun.serve with HTML imports, serves `src/index.html` as SPA with static file routes for portraits.
 
 **Frontend entry**: `src/frontend.tsx` — mounts React app with BrowserRouter.
 

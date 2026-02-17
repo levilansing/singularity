@@ -36,7 +36,7 @@ export function getHeadshotPath(predictorName: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_|_$/g, "");
-  return `/headshots/${slug}.jpg`;
+  return `/portraits/${slug}.jpg`;
 }
 
 export function slugify(prediction: PredictionSlim): string {

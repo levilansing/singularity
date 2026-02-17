@@ -3,11 +3,11 @@ import index from "./index.html";
 
 const server = serve({
   static: {
-    "/headshots/*": "public/headshots/*",
+    "/portraits/*": "public/portraits/*",
   },
   routes: {
-    "/headshots/:file": async (req) => {
-      const file = Bun.file(`public/headshots/${req.params.file}`);
+    "/portraits/:file": async (req) => {
+      const file = Bun.file(`public/portraits/${req.params.file}`);
       if (await file.exists()) return new Response(file);
       return new Response("Not found", { status: 404 });
     },
