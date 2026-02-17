@@ -1,8 +1,9 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import predictions from "../data/predictions-slim.json";
 import type { PredictionSlim } from "../data/types";
 import { AgiIcon, SingularityIcon, SuperintelligenceIcon, TransformativeAiIcon, HlmiIcon } from "./TypeIcons";
 import { SectionHeader } from "./SectionHeader";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./Select";
 
 function GearIcon() {
   return (
@@ -176,6 +177,180 @@ const EVENT_TYPES: EventType[] = [
   },
 ];
 
+/** Comparison key: sorted pair of event type IDs joined by "|" */
+function comparisonKey(a: string, b: string): string {
+  return [a, b].sort().join("|");
+}
+
+const COMPARISONS: Record<string, { title: string; body: string }> = {
+  [comparisonKey("agi", "tai")]: {
+    title: "AGI vs Transformative AI",
+    body: "{agi:AGI is about matching human cognition} — can the machine think like us? {tai:Transformative AI asks whether civilization changed}. You could have transformative AI without anything resembling general intelligence (imagine a narrow system that automates 80% of jobs), and you could theoretically have AGI without transformation (a human-level AI that's too expensive to deploy). In practice, the TAI crowd thinks the AGI debate is philosophical navel-gazing, while the AGI crowd thinks TAI is just kicking the definitional can down the road. They're both right.",
+  },
+  [comparisonKey("agi", "hlmi")]: {
+    title: "AGI vs Human-Level AI",
+    body: "These sound identical and everyone uses them interchangeably, which is exactly the problem. {hlmi:HLMI is specifically pegged to the median human} — can the machine do everything an average person can? {agi:AGI is vaguer and more ambitious} — some definitions require creativity, transfer learning, or even understanding. An HLMI could theoretically be a very sophisticated mimic that passes every test without 'getting it.' Whether that distinction matters depends on whether you think the Turing test measures intelligence or acting. The survey data treats them differently: HLMI surveys produce later dates because researchers interpret the bar as higher when the question is phrased more carefully.",
+  },
+  [comparisonKey("agi", "asi")]: {
+    title: "AGI vs Superintelligence",
+    body: "{agi:AGI is the finish line everyone's racing toward}. {asi:Superintelligence is what happens five minutes later} — and it's the part that keeps safety researchers awake. AGI matches us; ASI surpasses us in every domain, potentially by an incomprehensible margin. The critical question is the 'takeoff speed': if there's a long gap between AGI and ASI, we have time to align it. If AGI immediately bootstraps to ASI — the 'hard takeoff' scenario — we get one shot at the alignment problem. Bostrom argues the gap could be days or hours. Optimists say decades. Nobody actually knows, which is exactly the problem.",
+  },
+  [comparisonKey("agi", "singularity")]: {
+    title: "AGI vs The Singularity",
+    body: "{agi:AGI is an engineering milestone}. {singularity:The Singularity is a civilizational phase transition}. You can have AGI without a singularity — maybe we build it and it's just... useful. Boring, even. The Singularity requires a feedback loop — intelligence improving intelligence improving intelligence until the curve goes vertical. Most singularity timelines assume AGI is a prerequisite, but Kurzweil argues the Singularity emerges from the broader convergence of nanotech, biotech, and AI — AGI is just one ingredient. Think of it this way: AGI is inventing fire. The Singularity is the resulting wildfire burning down the forest and growing a new one.",
+  },
+  [comparisonKey("tai", "hlmi")]: {
+    title: "Transformative AI vs Human-Level AI",
+    body: "{tai:TAI measures impact on the world}. {hlmi:HLMI measures capability of the machine}. A transformative AI could be narrow — imagine a system that's terrible at poetry but automates every logistics job on Earth. That's not human-level, but it's definitely transformative. Conversely, a human-level AI might arrive and... not transform much, if deployment is slow or regulated. The TAI framing was specifically designed to sidestep the 'what is intelligence?' debate and focus on measurable economic and social effects. Pragmatic? Yes. Less fun to argue about at conferences? Also yes.",
+  },
+  [comparisonKey("tai", "asi")]: {
+    title: "Transformative AI vs Superintelligence",
+    body: "{tai:Transformative AI could arrive without anything superhuman} — it just needs to change the world as much as the Industrial Revolution did. A fleet of competent-but-not-genius AI systems automating most knowledge work would qualify. {asi:Superintelligence requires exceeding human capability in essentially every domain}. The irony: TAI might be more dangerous in the short term precisely because it's more plausible. Nobody's deploying superintelligence tomorrow, but 'AI that's good enough to replace your team' is already in pitch decks. The transformation might be less dramatic and more insidious than the superintelligence crowd imagines.",
+  },
+  [comparisonKey("tai", "singularity")]: {
+    title: "Transformative AI vs The Singularity",
+    body: "TAI is the Industrial Revolution comparison — {tai:massive, measurable, but ultimately comprehensible change}. The Singularity is the 'event horizon' — {singularity:change so profound that prediction becomes impossible from this side}. You can model a post-TAI world: different jobs, different economics, different power structures. You can't model a post-Singularity world by definition. TAI timelines are generally shorter because the bar is lower — you don't need recursively self-improving superintelligence, just AI capable enough to reshape the economy. Most forecasters think we'll cross the TAI threshold well before anything resembling a singularity — if the singularity happens at all.",
+  },
+  [comparisonKey("hlmi", "asi")]: {
+    title: "Human-Level AI vs Superintelligence",
+    body: "{hlmi:HLMI is the median human}. {asi:ASI is as far beyond humans as humans are beyond goldfish}. The gap between these two is the most important variable in AI safety: if it takes decades to go from HLMI to ASI, we have time to figure out alignment. If it takes weeks because a human-level AI can improve its own architecture, we're in Bostrom's 'treacherous turn' scenario. Grace et al. surveys show researchers expect HLMI by ~2047 but haven't converged on ASI timelines at all. The honest answer is that nobody knows how hard the jump from 'human-equivalent' to 'superhuman' actually is, because we've never built either.",
+  },
+  [comparisonKey("hlmi", "singularity")]: {
+    title: "Human-Level AI vs The Singularity",
+    body: "{hlmi:HLMI is a capability threshold} — a machine that can do anything a median human can do. {singularity:The Singularity is a self-reinforcing cycle of intelligence improvement} that makes the future unpredictable. HLMI might be necessary for a singularity (you probably need human-level reasoning to bootstrap beyond it), but it's not sufficient. The Singularity also requires the 'recursive' part — the AI improving itself, designing better AI, which designs even better AI. Some researchers think HLMI will be a tool we use, not an agent that bootstraps. In that world, you get HLMI without a singularity — a useful assistant, not an intelligence explosion.",
+  },
+  [comparisonKey("asi", "singularity")]: {
+    title: "Superintelligence vs The Singularity",
+    body: "These are often conflated but they're distinct concepts. {asi:Superintelligence is an entity — a mind vastly smarter than any human}. {singularity:The Singularity is an event — the moment technological change becomes irreversible}. You could theoretically have superintelligence without a singularity (a contained, controlled ASI that doesn't trigger runaway change) or a singularity without a single superintelligent entity (a network effect of many narrow AIs creating emergent transformation). In practice, most scenarios where ASI exists do lead to singularity-like conditions, because it's hard to imagine something that much smarter than us choosing to maintain the status quo. But 'hard to imagine' is different from 'impossible.'",
+  },
+};
+
+/** Parse {typeId:phrase} markup into React nodes with colored underlines */
+function renderComparison(text: string): React.ReactNode[] {
+  const colorMap: Record<string, string> = {};
+  for (const t of EVENT_TYPES) colorMap[t.id] = t.color;
+
+  const nodes: React.ReactNode[] = [];
+  const re = /\{(\w+):([^}]+)\}/g;
+  let cursor = 0;
+  let m: RegExpExecArray | null;
+  let key = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > cursor) nodes.push(text.slice(cursor, m.index));
+    const color = colorMap[m[1]] ?? "#888";
+    nodes.push(
+      <span key={key++} style={{ textDecorationLine: "underline", textDecorationColor: color, textUnderlineOffset: "3px", textDecorationThickness: "2px" }}>
+        {m[2]}
+      </span>
+    );
+    cursor = m.index + m[0].length;
+  }
+  if (cursor < text.length) nodes.push(text.slice(cursor));
+  return nodes;
+}
+
+function ComparisonView({ initialLeft, initialRight, activeLabel, onClose }: { initialLeft: string; initialRight: string; activeLabel: string; onClose: () => void }) {
+  const [leftId, setLeftId] = useState(initialLeft);
+  const [rightId, setRightId] = useState(initialRight);
+
+  const key = comparisonKey(leftId, rightId);
+  const comparison = COMPARISONS[key];
+  const leftType = EVENT_TYPES.find((t) => t.id === leftId)!;
+  const rightType = EVENT_TYPES.find((t) => t.id === rightId)!;
+
+  const handleLeftChange = (id: string) => {
+    setLeftId(id);
+    if (id === rightId) {
+      const other = EVENT_TYPES.find((t) => t.id !== id);
+      if (other) setRightId(other.id);
+    }
+  };
+
+  const handleRightChange = (id: string) => {
+    setRightId(id);
+    if (id === leftId) {
+      const other = EVENT_TYPES.find((t) => t.id !== id);
+      if (other) setLeftId(other.id);
+    }
+  };
+
+  return (
+    <div className="flex flex-col justify-center h-full min-h-[inherit]">
+      <h4 className="font-mono text-[1rem] font-bold text-(--text) m-0 mb-4 text-center">
+        What's the Difference?
+      </h4>
+
+      {/* Dropdowns */}
+      <div className="flex max-sm:flex-col gap-3 mb-5">
+        <div className="flex-1">
+          <Select value={leftId} onValueChange={handleLeftChange}>
+            <SelectTrigger
+              className="w-full font-mono text-[0.85rem] cursor-pointer"
+              style={{
+                background: `${leftType.color}10`,
+                borderColor: `${leftType.color}30`,
+                color: leftType.color,
+              }}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {EVENT_TYPES.map((t) => (
+                <SelectItem key={t.id} value={t.id} className="font-mono text-[0.85rem]">
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center justify-center text-(--text-dim) font-mono text-[0.8rem] max-sm:py-0">
+          vs
+        </div>
+
+        <div className="flex-1">
+          <Select value={rightId} onValueChange={handleRightChange}>
+            <SelectTrigger
+              className="w-full font-mono text-[0.85rem] cursor-pointer"
+              style={{
+                background: `${rightType.color}10`,
+                borderColor: `${rightType.color}30`,
+                color: rightType.color,
+              }}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {EVENT_TYPES.map((t) => (
+                <SelectItem key={t.id} value={t.id} className="font-mono text-[0.85rem]">
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Comparison content */}
+      {comparison && (
+        <p className="m-0 text-[0.85rem] text-(--text-muted) leading-relaxed">
+          {renderComparison(comparison.body)}
+        </p>
+      )}
+
+      {/* Back button */}
+      <div className="flex justify-center mt-5 pt-3 border-t border-[#ffffff06]">
+        <button
+          onClick={onClose}
+          className="text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono"
+        >
+          ← Back to {activeLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ────────────────────────────────────────────
    Crowd Estimate badge (top-right of card)
    ──────────────────────────────────────────── */
@@ -258,6 +433,7 @@ export function TypeCarousel() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
   const active = EVENT_TYPES[activeIdx]!;
   const averages = useMemo(computeWeightedAverages, []);
 
@@ -270,7 +446,7 @@ export function TypeCarousel() {
         {EVENT_TYPES.map((t, i) => (
           <button
             key={t.id}
-            onClick={() => { setActiveIdx(i); setDetailsOpen(false); }}
+            onClick={() => { setActiveIdx(i); setDetailsOpen(false); setCompareMode(false); }}
             onMouseEnter={() => setHoveredIdx(i)}
             onMouseLeave={() => setHoveredIdx(null)}
             className="px-3 py-1.5 rounded-full text-[0.75rem] font-mono font-medium cursor-pointer transition-all duration-200 border"
@@ -288,91 +464,101 @@ export function TypeCarousel() {
 
       {/* Active card */}
       <div
-        className="bg-(--bg-card) border rounded-xl p-6 max-sm:p-4 transition-colors duration-300"
-        style={{ borderColor: `${active.color}20` }}
+        className="bg-(--bg-card) border rounded-xl p-6 max-sm:p-4 transition-colors duration-300 min-h-[540px]"
+        style={{ borderColor: compareMode ? "#ffffff15" : `${active.color}20` }}
       >
-        <div className="flex items-start gap-3 mb-3">
-          <span className="text-2xl leading-none -mt-1" style={{ fontSize: "2rem" }}>{active.icon}</span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <h4
-                  className="text-[1.05rem] font-bold font-mono m-0 leading-tight"
-                  style={{ color: active.color }}
-                >
-                  {active.label}
-                </h4>
-                <p className="text-[0.75rem] text-(--text-dim) m-0 mt-0.5 italic">
-                  {active.tagline}
-                </p>
+        {compareMode ? (
+          <ComparisonView initialLeft={active.id} initialRight={EVENT_TYPES[(activeIdx + 1) % EVENT_TYPES.length]!.id} activeLabel={active.label} onClose={() => setCompareMode(false)} />
+        ) : (
+          <>
+            <div className="flex items-start gap-3 mb-3">
+              <span className="text-2xl leading-none -mt-1" style={{ fontSize: "2rem" }}>{active.icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4
+                      className="text-[1.05rem] font-bold font-mono m-0 leading-tight"
+                      style={{ color: active.color }}
+                    >
+                      {active.label}
+                    </h4>
+                    <p className="text-[0.75rem] text-(--text-dim) m-0 mt-0.5 italic">
+                      {active.tagline}
+                    </p>
+                  </div>
+                  {averages[active.id] != null && (
+                    <CrowdEstimateBadge result={averages[active.id]!} />
+                  )}
+                </div>
               </div>
-              {averages[active.id] != null && (
-                <CrowdEstimateBadge result={averages[active.id]!} />
+            </div>
+
+            <p className="singularity-article-body">{active.description}</p>
+
+            <div
+              className="flex flex-wrap gap-x-4 gap-y-1 text-[0.72rem] font-mono px-3 py-2 rounded-lg mt-3 mb-1"
+              style={{ background: `${active.color}08`, color: `${active.color}cc` }}
+            >
+              {active.keyFigures.split(" | ").map((f, i) => (
+                <span key={i}>{f}</span>
+              ))}
+            </div>
+
+            {/* Fun Fact - always visible */}
+            <div className="mt-3 rounded-lg border border-[#ffffff0a] p-4" style={{ background: `${active.color}05` }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span style={{ color: active.color }}><SparkleIcon /></span>
+                <span className="font-mono text-[0.8rem] font-bold" style={{ color: active.color }}>Fun Fact</span>
+              </div>
+              <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{active.funFact}</p>
+            </div>
+
+            {/* More Details - accordion, closed by default */}
+            <div className="mt-4 rounded-lg border border-[#ffffff0a]" style={{ background: `${active.color}05` }}>
+              <button
+                onClick={() => setDetailsOpen(!detailsOpen)}
+                className="flex items-center gap-2 w-full p-4 cursor-pointer text-left bg-transparent border-none"
+              >
+                <span style={{ color: active.color }}><GearIcon /></span>
+                <span className="font-mono text-[0.8rem] font-bold flex-1" style={{ color: active.color }}>More Details</span>
+                <span
+                  className="text-[0.75rem] transition-transform duration-200"
+                  style={{ color: `${active.color}80`, transform: detailsOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                >
+                  ▼
+                </span>
+              </button>
+              {detailsOpen && (
+                <div className="px-4 pb-4">
+                  <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{active.techDetails}</p>
+                </div>
               )}
             </div>
-          </div>
-        </div>
 
-        <p className="singularity-article-body">{active.description}</p>
-
-        <div
-          className="flex flex-wrap gap-x-4 gap-y-1 text-[0.72rem] font-mono px-3 py-2 rounded-lg mt-3 mb-1"
-          style={{ background: `${active.color}08`, color: `${active.color}cc` }}
-        >
-          {active.keyFigures.split(" | ").map((f, i) => (
-            <span key={i}>{f}</span>
-          ))}
-        </div>
-
-        {/* Fun Fact - always visible */}
-        <div className="mt-3 rounded-lg border border-[#ffffff0a] p-4" style={{ background: `${active.color}05` }}>
-          <div className="flex items-center gap-2 mb-2">
-            <span style={{ color: active.color }}><SparkleIcon /></span>
-            <span className="font-mono text-[0.8rem] font-bold" style={{ color: active.color }}>Fun Fact</span>
-          </div>
-          <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{active.funFact}</p>
-        </div>
-
-        {/* More Details - accordion, closed by default */}
-        <div className="mt-4 rounded-lg border border-[#ffffff0a]" style={{ background: `${active.color}05` }}>
-          <button
-            onClick={() => setDetailsOpen(!detailsOpen)}
-            className="flex items-center gap-2 w-full p-4 cursor-pointer text-left bg-transparent border-none"
-          >
-            <span style={{ color: active.color }}><GearIcon /></span>
-            <span className="font-mono text-[0.8rem] font-bold flex-1" style={{ color: active.color }}>More Details</span>
-            <span
-              className="text-[0.75rem] transition-transform duration-200"
-              style={{ color: `${active.color}80`, transform: detailsOpen ? "rotate(180deg)" : "rotate(0deg)" }}
-            >
-              ▼
-            </span>
-          </button>
-          {detailsOpen && (
-            <div className="px-4 pb-4">
-              <p className="m-0 text-[0.8rem] text-(--text-muted) leading-relaxed">{active.techDetails}</p>
+            {/* Nav arrows */}
+            <div className="flex justify-between items-center mt-4 pt-3 border-t border-[#ffffff06]">
+              <button
+                onClick={() => { setActiveIdx((activeIdx - 1 + EVENT_TYPES.length) % EVENT_TYPES.length); setDetailsOpen(false); }}
+                className="text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono"
+              >
+                ← {EVENT_TYPES[(activeIdx - 1 + EVENT_TYPES.length) % EVENT_TYPES.length]!.label}
+              </button>
+              <button
+                onClick={() => setCompareMode(true)}
+                className="text-[0.7rem] cursor-pointer transition-colors font-mono"
+                style={{ color: `${active.color}90` }}
+              >
+                What's the Difference?
+              </button>
+              <button
+                onClick={() => { setActiveIdx((activeIdx + 1) % EVENT_TYPES.length); setDetailsOpen(false); }}
+                className="text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono"
+              >
+                {EVENT_TYPES[(activeIdx + 1) % EVENT_TYPES.length]!.label} →
+              </button>
             </div>
-          )}
-        </div>
-
-        {/* Nav arrows */}
-        <div className="flex justify-between items-center mt-4 pt-3 border-t border-[#ffffff06]">
-          <button
-            onClick={() => { setActiveIdx((activeIdx - 1 + EVENT_TYPES.length) % EVENT_TYPES.length); setDetailsOpen(false); }}
-            className="text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono"
-          >
-            ← {EVENT_TYPES[(activeIdx - 1 + EVENT_TYPES.length) % EVENT_TYPES.length]!.label}
-          </button>
-          <span className="text-[0.65rem] text-(--text-dim) font-mono">
-            {activeIdx + 1}/{EVENT_TYPES.length}
-          </span>
-          <button
-            onClick={() => { setActiveIdx((activeIdx + 1) % EVENT_TYPES.length); setDetailsOpen(false); }}
-            className="text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono"
-          >
-            {EVENT_TYPES[(activeIdx + 1) % EVENT_TYPES.length]!.label} →
-          </button>
-        </div>
+          </>
+        )}
       </div>
     </section>
   );
