@@ -25,7 +25,7 @@ function SparkleIcon() {
 const allPredictions = predictions as PredictionSlim[];
 
 /* ────────────────────────────────────────────
-   Weighted average computation
+   Crowd estimate via weighted median
    ──────────────────────────────────────────── */
 
 /** Maps prediction_type values to our five card IDs */
@@ -40,45 +40,74 @@ const TYPE_TO_CARD: Record<string, string> = {
   "Human-level AI": "hlmi",
 };
 
-interface WeightedResult {
-  /** Weighted average as a Date */
-  averageDate: Date;
+/** Confidence multiplier: high-confidence predictions count more */
+const CONFIDENCE_WEIGHT: Record<string, number> = {
+  high: 1.5,
+  medium: 1.0,
+  low: 0.6,
+};
+
+interface CrowdEstimate {
+  /** Weighted median as a Date */
+  medianDate: Date;
   count: number;
   earliest: number;
   latest: number;
 }
 
-function computeWeightedAverages(): Record<string, WeightedResult> {
-  const groups: Record<string, { dateBest: string; yearBest: number; predYear: number }[]> = {};
+/** Weighted median: the value where cumulative weight reaches 50% */
+function weightedMedianDate(items: { ts: number; weight: number }[]): number {
+  const sorted = [...items].sort((a, b) => a.ts - b.ts);
+  const totalWeight = sorted.reduce((s, i) => s + i.weight, 0);
+  const halfWeight = totalWeight / 2;
+  let cumulative = 0;
+  for (let i = 0; i < sorted.length; i++) {
+    cumulative += sorted[i]!.weight;
+    if (cumulative >= halfWeight) {
+      // Interpolate between this point and the previous for smoother results
+      if (i > 0 && cumulative - sorted[i]!.weight < halfWeight) {
+        const prev = sorted[i - 1]!;
+        const curr = sorted[i]!;
+        const gap = cumulative - halfWeight;
+        const frac = curr.weight > 0 ? gap / curr.weight : 0;
+        return curr.ts - frac * (curr.ts - prev.ts);
+      }
+      return sorted[i]!.ts;
+    }
+  }
+  return sorted[sorted.length - 1]!.ts;
+}
+
+function computeCrowdEstimates(): Record<string, CrowdEstimate> {
+  const groups: Record<string, { ts: number; yearBest: number; weight: number }[]> = {};
 
   for (const p of allPredictions) {
     const cardId = TYPE_TO_CARD[p.prediction_type];
     if (!cardId || !p.predicted_date_best || !p.predicted_year_best) continue;
     if (!groups[cardId]) groups[cardId] = [];
     const predYear = parseInt(p.prediction_date.slice(0, 4), 10);
-    groups[cardId].push({ dateBest: p.predicted_date_best, yearBest: p.predicted_year_best, predYear });
+    // Recency weight: recent predictions count more (2015→1.0, 2025→2.0, 2026→2.1)
+    const recency = 1 + Math.max(0, predYear - 2015) / 10;
+    // Confidence weight: high-confidence predictions count more
+    const conf = CONFIDENCE_WEIGHT[p.confidence_type] ?? 1.0;
+    groups[cardId].push({
+      ts: new Date(p.predicted_date_best).getTime(),
+      yearBest: p.predicted_year_best,
+      weight: recency * conf,
+    });
   }
 
-  const results: Record<string, WeightedResult> = {};
+  const results: Record<string, CrowdEstimate> = {};
   for (const [cardId, items] of Object.entries(groups)) {
-    // Weight = 1 + (prediction_year - 2015) / 10
-    // 2015 → weight 1.0, 2025 → 2.0, 2026 → 2.1
-    let totalWeight = 0;
-    let weightedSum = 0;
     let earliest = Infinity;
     let latest = -Infinity;
-
     for (const item of items) {
-      const w = 1 + Math.max(0, item.predYear - 2015) / 10;
-      const ts = new Date(item.dateBest).getTime();
-      weightedSum += ts * w;
-      totalWeight += w;
       if (item.yearBest < earliest) earliest = item.yearBest;
       if (item.yearBest > latest) latest = item.yearBest;
     }
 
     results[cardId] = {
-      averageDate: new Date(weightedSum / totalWeight),
+      medianDate: new Date(weightedMedianDate(items)),
       count: items.length,
       earliest,
       latest,
@@ -371,10 +400,10 @@ function formatEstimateDate(date: Date): string {
   return `${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
-function CrowdEstimateBadge({ result }: { result: WeightedResult }) {
+function CrowdEstimateBadge({ result }: { result: CrowdEstimate }) {
   const [hovered, setHovered] = useState(false);
-  const color = getProximityColor(result.averageDate);
-  const dateStr = formatEstimateDate(result.averageDate);
+  const color = getProximityColor(result.medianDate);
+  const dateStr = formatEstimateDate(result.medianDate);
 
   return (
     <div
@@ -409,14 +438,14 @@ function CrowdEstimateBadge({ result }: { result: WeightedResult }) {
           </div>
           <div className="text-(--text-muted) space-y-1">
             <p className="m-0">
-              Weighted average of <strong className="text-(--text)">{result.count}</strong> predictions,
-              with recent forecasts weighted ~2x more than older ones.
+              Weighted median of <strong className="text-(--text)">{result.count}</strong> predictions.
+              Recent and high-confidence forecasts weighted more heavily.
             </p>
             <p className="m-0 text-(--text-dim) mt-2">
               Range: {result.earliest} – {result.latest}
             </p>
             <p className="m-0 text-(--text-dim)" style={{ fontSize: "0.65rem" }}>
-              Weight = 1 + (year_made − 2015) / 10
+              recency × confidence weighting
             </p>
           </div>
         </div>
@@ -434,8 +463,19 @@ export function TypeCarousel() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
+  const [lockedHeight, setLockedHeight] = useState<number | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const highWaterRef = useRef(0);
   const active = EVENT_TYPES[activeIdx]!;
-  const averages = useMemo(computeWeightedAverages, []);
+  const averages = useMemo(computeCrowdEstimates, []);
+
+  // Ratchet min-height upward as the user navigates between types
+  useEffect(() => {
+    if (!compareMode && cardRef.current) {
+      const h = cardRef.current.scrollHeight + 2; // +2 for border
+      if (h > highWaterRef.current) highWaterRef.current = h;
+    }
+  }, [activeIdx, detailsOpen, compareMode]);
 
   return (
     <section>
@@ -464,13 +504,18 @@ export function TypeCarousel() {
 
       {/* Active card */}
       <div
-        className="bg-(--bg-card) border rounded-xl p-6 max-sm:p-4 transition-colors duration-300 min-h-[540px]"
-        style={{ borderColor: compareMode ? "#ffffff15" : `${active.color}20` }}
+        ref={cardRef}
+        className="flex flex-col bg-(--bg-card) border rounded-xl p-6 max-sm:p-4 transition-colors duration-300 min-h-[540px]"
+        style={{
+          borderColor: compareMode ? "#ffffff15" : `${active.color}20`,
+          ...(lockedHeight != null ? { height: lockedHeight } : {}),
+          ...(highWaterRef.current > 0 && lockedHeight == null ? { minHeight: highWaterRef.current } : {}),
+        }}
       >
         {compareMode ? (
-          <ComparisonView initialLeft={active.id} initialRight={EVENT_TYPES[(activeIdx + 1) % EVENT_TYPES.length]!.id} activeLabel={active.label} onClose={() => setCompareMode(false)} />
+          <ComparisonView initialLeft={active.id} initialRight={EVENT_TYPES[(activeIdx + 1) % EVENT_TYPES.length]!.id} activeLabel={active.label} onClose={() => { setCompareMode(false); setLockedHeight(null); }} />
         ) : (
-          <>
+          <div className="flex flex-col flex-1">
             <div className="flex items-start gap-3 mb-3">
               <span className="text-2xl leading-none -mt-1" style={{ fontSize: "2rem" }}>{active.icon}</span>
               <div className="flex-1 min-w-0">
@@ -536,28 +581,29 @@ export function TypeCarousel() {
             </div>
 
             {/* Nav arrows */}
-            <div className="flex justify-between items-center mt-4 pt-3 border-t border-[#ffffff06]">
+            <div className="flex items-center mt-auto pt-3 border-t border-[#ffffff06]">
               <button
                 onClick={() => { setActiveIdx((activeIdx - 1 + EVENT_TYPES.length) % EVENT_TYPES.length); setDetailsOpen(false); }}
-                className="text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono"
+                className="flex-1 text-left text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono truncate"
               >
                 ← {EVENT_TYPES[(activeIdx - 1 + EVENT_TYPES.length) % EVENT_TYPES.length]!.label}
               </button>
               <button
-                onClick={() => setCompareMode(true)}
-                className="text-[0.7rem] cursor-pointer transition-colors font-mono"
+                onClick={() => { if (cardRef.current) setLockedHeight(cardRef.current.offsetHeight); setCompareMode(true); }}
+                className="shrink-0 text-[0.7rem] cursor-pointer transition-colors font-mono"
                 style={{ color: `${active.color}90` }}
               >
-                What's the Difference?
+                <span className="max-sm:hidden">What's the Difference?</span>
+                <span className="sm:hidden">What's the Diff?</span>
               </button>
               <button
                 onClick={() => { setActiveIdx((activeIdx + 1) % EVENT_TYPES.length); setDetailsOpen(false); }}
-                className="text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono"
+                className="flex-1 text-right text-[0.75rem] text-(--text-dim) hover:text-(--text) cursor-pointer transition-colors font-mono truncate"
               >
                 {EVENT_TYPES[(activeIdx + 1) % EVENT_TYPES.length]!.label} →
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </section>
