@@ -93,7 +93,7 @@ export function Countdown({ prediction, onRandom }: CountdownProps) {
             <span className={sepClass}>:</span>
             <CountdownDigit unit="seconds" initialValue={initialTime.seconds} label="Seconds" shortLabel={hasYears ? "S" : undefined} urgency={urgency} />
             <span className={sepClass}>.</span>
-            <MillisecondsDisplay hasYears={hasYears} />
+            <MillisecondsDisplay key={prediction.id} hasYears={hasYears} />
           </div>
         );
       })()}

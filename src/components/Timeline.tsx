@@ -321,6 +321,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   const yTicks = useMemo(() => generateTicks(vp.yMin, vp.yMax), [vp.yMin, vp.yMax]);
 
   const handleMouseEnter = useCallback((prediction: PredictionSlim, event: React.MouseEvent) => {
+    if (isTouchDevice.current) return;
     const container = containerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
@@ -487,10 +488,12 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    // Only pan on background clicks (not on data points)
-    if ((e.target as SVGElement).closest?.(".timeline-row")) return;
+    const isOnPoint = !!(e.target as SVGElement).closest?.(".timeline-row");
+
     // On desktop, confine interactions to the plot area; on mobile, allow anywhere on the card
     if (e.pointerType !== "touch" && !isInPlotArea(e.clientX, e.clientY)) return;
+    // On desktop, don't start pan from data points
+    if (e.pointerType !== "touch" && isOnPoint) return;
 
     if (e.pointerType === "touch") isTouchDevice.current = true;
 

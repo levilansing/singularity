@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getHeadshot, subscribeHeadshot } from "./headshotCache";
 
 interface PredictorAvatarProps {
   name: string;
@@ -30,21 +31,32 @@ const sizeClasses = {
 } as const;
 
 export function PredictorAvatar({ name, headshotLocal, size = "md" }: PredictorAvatarProps) {
-  const [imgError, setImgError] = useState(false);
+  const [status, setStatus] = useState<"loading" | "loaded" | "error">(() =>
+    headshotLocal ? getHeadshot(headshotLocal) : "error"
+  );
 
   useEffect(() => {
-    setImgError(false);
+    if (!headshotLocal) {
+      setStatus("error");
+      return;
+    }
+    // Check current cache status (may have resolved since initial render)
+    const current = getHeadshot(headshotLocal);
+    setStatus(current);
+    if (current !== "loading") return;
+
+    // Subscribe to updates while loading
+    return subscribeHeadshot(headshotLocal, () => {
+      setStatus(getHeadshot(headshotLocal));
+    });
   }, [headshotLocal]);
 
-  const hasImage = headshotLocal && !imgError;
-
-  if (hasImage) {
+  if (status === "loaded" && headshotLocal) {
     return (
       <img
-        src={headshotLocal!}
+        src={headshotLocal}
         alt={name}
         className={`rounded-full object-cover ${sizeClasses[size]}`}
-        onError={() => setImgError(true)}
       />
     );
   }
