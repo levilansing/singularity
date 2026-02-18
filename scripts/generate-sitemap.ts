@@ -12,6 +12,7 @@ const slugs = allPredictions.map((p) => slugify(p));
 
 const urls = [
   DOMAIN + "/",
+  DOMAIN + "/browse",
   ...slugs.map((s) => `${DOMAIN}/${s}`),
 ];
 
