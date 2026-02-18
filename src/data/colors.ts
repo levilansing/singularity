@@ -4,7 +4,6 @@
 export const TYPE_HEX: Record<string, string> = {
   "AGI": "#06b6d4",
   "Transformative AI": "#a78bfa",
-  "Human-level AI": "#ef4444",
   "Superintelligence": "#f97316",
   "Singularity": "#fbbf24",
 };
@@ -13,7 +12,6 @@ export const TYPE_HEX: Record<string, string> = {
 export const TYPE_BADGE: Record<string, string> = {
   "AGI": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
   "Transformative AI": "bg-violet-400/20 text-violet-300 border-violet-400/30",
-  "Human-level AI": "bg-red-500/20 text-red-300 border-red-500/30",
   "Superintelligence": "bg-orange-500/20 text-orange-300 border-orange-500/30",
   "Singularity": "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
 };
@@ -24,7 +22,6 @@ export const TYPE_LEGEND_ORDER = Object.keys(TYPE_HEX);
 /** Normalize variant types to canonical keys */
 export function canonicalType(type: string): string {
   if (type.startsWith("AGI")) return "AGI";
-  if (type === "HLMI") return "Human-level AI";
   return type;
 }
 

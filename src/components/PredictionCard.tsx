@@ -24,9 +24,7 @@ export function PredictionCard({ prediction, detail, onRandom }: PredictionCardP
 
   const displayType = prediction.prediction_type.startsWith("AGI")
     ? "AGI"
-    : prediction.prediction_type === "HLMI"
-      ? "Human-level AI"
-      : prediction.prediction_type;
+    : prediction.prediction_type;
 
   return (
     <div className="relative bg-(--bg-card) border border-[#ffffff08] rounded-xl p-6 max-sm:p-4">

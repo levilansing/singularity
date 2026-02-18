@@ -111,7 +111,7 @@ function PredictionPage() {
   // Update page title on client-side navigation
   useEffect(() => {
     if (!selected || !id) return;
-    const type = selected.prediction_type.startsWith("AGI") ? "AGI" : selected.prediction_type === "HLMI" ? "human-level AI" : selected.prediction_type.toLowerCase();
+    const type = selected.prediction_type.startsWith("AGI") ? "AGI" : selected.prediction_type.toLowerCase();
     const year = selected.predicted_year_best ? `by ${selected.predicted_year_best}` : "";
     document.title = `${selected.predictor_name} predicts ${type} ${year} — When is the AI singularity?`.replace(/\s+/g, " ").trim();
   }, [selected]);

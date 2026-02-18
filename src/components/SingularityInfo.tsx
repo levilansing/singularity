@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import predictions from "../data/predictions-slim.json";
 import type { PredictionSlim } from "../data/types";
-import { AgiIcon, SingularityIcon, SuperintelligenceIcon, TransformativeAiIcon, HlmiIcon } from "./TypeIcons";
+import { AgiIcon, SingularityIcon, SuperintelligenceIcon, TransformativeAiIcon } from "./TypeIcons";
 import { SectionHeader } from "./SectionHeader";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./Select";
 
@@ -36,8 +36,6 @@ const TYPE_TO_CARD: Record<string, string> = {
   "Singularity": "singularity",
   "Superintelligence": "asi",
   "Transformative AI": "tai",
-  "HLMI": "hlmi",
-  "Human-level AI": "hlmi",
 };
 
 /** Confidence multiplier: high-confidence predictions count more */
@@ -163,20 +161,6 @@ const EVENT_TYPES: EventType[] = [
     keyFigures: "Suleyman: 2026 | LeCun: 2030 | Cotra: 2040 | Hinton: 2026 | Russell: 2030 | Hayworth: 2100",
   },
   {
-    id: "hlmi",
-    label: "Human-Level AI",
-    icon: <HlmiIcon />,
-    tagline: "As Smart as You (Yes, You Specifically)",
-    color: "#ef4444",
-    description:
-      "Human-Level Machine Intelligence — an AI that can perform any task as well as a median human, given the same resources and time. Not a genius, not a specialist — just average-human-good at everything. Sounds like a low bar until you remember the median human can cook dinner while comforting a crying child while feeling vaguely anxious about climate change. Fewest predictions in our dataset, but arguably the most methodologically rigorous survey data.",
-    techDetails:
-      "The Grace et al. survey (2016, 2022, 2023) is the gold standard for HLMI forecasting, polling thousands of AI researchers. The median shifted from 2061 (2016) to 2060 (2022) to 2047 (2023) — that 13-year jump after ChatGPT was unprecedented in the 70-year history of AI forecasting. Metaculus community forecasts moved even more dramatically: from ~50 years away in 2020 to ~7 years away in early 2026. The AAAI 2025 Presidential Panel survey found that 76% of 475 respondents believe scaling current approaches is unlikely to produce AGI — suggesting the optimistic industry timeline assumes breakthroughs beyond what we currently know how to do. Andrej Karpathy, ex-Tesla AI chief, declared a \"decade of agents\" rather than a \"year of agents\" — a diplomatically devastating correction to the hype cycle.",
-    funFact:
-      "The survey asked researchers when AI would beat humans at specific tasks. Their 2023 predictions: AI writes a bestselling novel by 2028, performs surgery by 2035, and does all human tasks by 2047. At the current rate of prediction acceleration, by the next survey they'll probably say last Tuesday. Meanwhile, Jeff Hawkins (the neuroscientist who invented the Palm Pilot) argues we need actual brain architecture, not just bigger transformers — which is either profound or the most expensive case of \"not invented here\" syndrome in history.",
-    keyFigures: "Grace survey 2023: 2047 | Metaculus: ~2028 | AAAI 2025: 76% doubt scaling alone",
-  },
-  {
     id: "asi",
     label: "Superintelligence",
     icon: <SuperintelligenceIcon />,
@@ -216,10 +200,6 @@ const COMPARISONS: Record<string, { title: string; body: string }> = {
     title: "AGI vs Transformative AI",
     body: "{agi:AGI is about matching human cognition} — can the machine think like us? {tai:Transformative AI asks whether civilization changed}. You could have transformative AI without anything resembling general intelligence (imagine a narrow system that automates 80% of jobs), and you could theoretically have AGI without transformation (a human-level AI that's too expensive to deploy). In practice, the TAI crowd thinks the AGI debate is philosophical navel-gazing, while the AGI crowd thinks TAI is just kicking the definitional can down the road. They're both right.",
   },
-  [comparisonKey("agi", "hlmi")]: {
-    title: "AGI vs Human-Level AI",
-    body: "These sound identical and everyone uses them interchangeably, which is exactly the problem. {hlmi:HLMI is specifically pegged to the median human} — can the machine do everything an average person can? {agi:AGI is vaguer and more ambitious} — some definitions require creativity, transfer learning, or even understanding. An HLMI could theoretically be a very sophisticated mimic that passes every test without 'getting it.' Whether that distinction matters depends on whether you think the Turing test measures intelligence or acting. The survey data treats them differently: HLMI surveys produce later dates because researchers interpret the bar as higher when the question is phrased more carefully.",
-  },
   [comparisonKey("agi", "asi")]: {
     title: "AGI vs Superintelligence",
     body: "{agi:AGI is the finish line everyone's racing toward}. {asi:Superintelligence is what happens five minutes later} — and it's the part that keeps safety researchers awake. AGI matches us; ASI surpasses us in every domain, potentially by an incomprehensible margin. The critical question is the 'takeoff speed': if there's a long gap between AGI and ASI, we have time to align it. If AGI immediately bootstraps to ASI — the 'hard takeoff' scenario — we get one shot at the alignment problem. Bostrom argues the gap could be days or hours. Optimists say decades. Nobody actually knows, which is exactly the problem.",
@@ -228,10 +208,6 @@ const COMPARISONS: Record<string, { title: string; body: string }> = {
     title: "AGI vs The Singularity",
     body: "{agi:AGI is an engineering milestone}. {singularity:The Singularity is a civilizational phase transition}. You can have AGI without a singularity — maybe we build it and it's just... useful. Boring, even. The Singularity requires a feedback loop — intelligence improving intelligence improving intelligence until the curve goes vertical. Most singularity timelines assume AGI is a prerequisite, but Kurzweil argues the Singularity emerges from the broader convergence of nanotech, biotech, and AI — AGI is just one ingredient. Think of it this way: AGI is inventing fire. The Singularity is the resulting wildfire burning down the forest and growing a new one.",
   },
-  [comparisonKey("tai", "hlmi")]: {
-    title: "Transformative AI vs Human-Level AI",
-    body: "{tai:TAI measures impact on the world}. {hlmi:HLMI measures capability of the machine}. A transformative AI could be narrow — imagine a system that's terrible at poetry but automates every logistics job on Earth. That's not human-level, but it's definitely transformative. Conversely, a human-level AI might arrive and... not transform much, if deployment is slow or regulated. The TAI framing was specifically designed to sidestep the 'what is intelligence?' debate and focus on measurable economic and social effects. Pragmatic? Yes. Less fun to argue about at conferences? Also yes.",
-  },
   [comparisonKey("tai", "asi")]: {
     title: "Transformative AI vs Superintelligence",
     body: "{tai:Transformative AI could arrive without anything superhuman} — it just needs to change the world as much as the Industrial Revolution did. A fleet of competent-but-not-genius AI systems automating most knowledge work would qualify. {asi:Superintelligence requires exceeding human capability in essentially every domain}. The irony: TAI might be more dangerous in the short term precisely because it's more plausible. Nobody's deploying superintelligence tomorrow, but 'AI that's good enough to replace your team' is already in pitch decks. The transformation might be less dramatic and more insidious than the superintelligence crowd imagines.",
@@ -239,14 +215,6 @@ const COMPARISONS: Record<string, { title: string; body: string }> = {
   [comparisonKey("tai", "singularity")]: {
     title: "Transformative AI vs The Singularity",
     body: "TAI is the Industrial Revolution comparison — {tai:massive, measurable, but ultimately comprehensible change}. The Singularity is the 'event horizon' — {singularity:change so profound that prediction becomes impossible from this side}. You can model a post-TAI world: different jobs, different economics, different power structures. You can't model a post-Singularity world by definition. TAI timelines are generally shorter because the bar is lower — you don't need recursively self-improving superintelligence, just AI capable enough to reshape the economy. Most forecasters think we'll cross the TAI threshold well before anything resembling a singularity — if the singularity happens at all.",
-  },
-  [comparisonKey("hlmi", "asi")]: {
-    title: "Human-Level AI vs Superintelligence",
-    body: "{hlmi:HLMI is the median human}. {asi:ASI is as far beyond humans as humans are beyond goldfish}. The gap between these two is the most important variable in AI safety: if it takes decades to go from HLMI to ASI, we have time to figure out alignment. If it takes weeks because a human-level AI can improve its own architecture, we're in Bostrom's 'treacherous turn' scenario. Grace et al. surveys show researchers expect HLMI by ~2047 but haven't converged on ASI timelines at all. The honest answer is that nobody knows how hard the jump from 'human-equivalent' to 'superhuman' actually is, because we've never built either.",
-  },
-  [comparisonKey("hlmi", "singularity")]: {
-    title: "Human-Level AI vs The Singularity",
-    body: "{hlmi:HLMI is a capability threshold} — a machine that can do anything a median human can do. {singularity:The Singularity is a self-reinforcing cycle of intelligence improvement} that makes the future unpredictable. HLMI might be necessary for a singularity (you probably need human-level reasoning to bootstrap beyond it), but it's not sufficient. The Singularity also requires the 'recursive' part — the AI improving itself, designing better AI, which designs even better AI. Some researchers think HLMI will be a tool we use, not an agent that bootstraps. In that world, you get HLMI without a singularity — a useful assistant, not an intelligence explosion.",
   },
   [comparisonKey("asi", "singularity")]: {
     title: "Superintelligence vs The Singularity",
@@ -479,7 +447,7 @@ export function TypeCarousel() {
 
   return (
     <section>
-      <SectionHeader title="The Five Things We're Actually Tracking" />
+      <SectionHeader title="The Four Things We're Actually Tracking" />
 
       {/* Tab bar */}
       <div className="flex flex-wrap justify-center gap-1.5 mb-5">
@@ -590,8 +558,8 @@ export function TypeCarousel() {
               </button>
               <button
                 onClick={() => { if (cardRef.current) setLockedHeight(cardRef.current.offsetHeight); setCompareMode(true); }}
-                className="shrink-0 text-[0.7rem] cursor-pointer transition-colors font-mono"
-                style={{ color: `${active.color}90` }}
+                className="shrink-0 text-[0.7rem] cursor-pointer transition-colors font-mono px-3 py-1 rounded-full border"
+                style={{ color: `${active.color}`, borderColor: `${active.color}30`, background: `${active.color}08` }}
               >
                 <span className="max-sm:hidden">What's the Difference?</span>
                 <span className="sm:hidden">What's the Diff?</span>
@@ -779,7 +747,7 @@ export function PredictionDrift() {
 
   const gridYears = [2030, 2040, 2050, 2060, 2070, 2080];
   const gridXYears = [1995, 2000, 2005, 2010, 2015, 2020, 2025];
-  const medianColor = filterType ? (TYPE_HEX[filterType] ?? "#8b5cf6") : "#8b5cf6";
+  const medianColor = filterType ? (TYPE_HEX[filterType] ?? "#ffffff") : "#ffffff";
 
   const MEDIAN_TIP_W = 300;
   const MEDIAN_TIP_H = 48;
@@ -1137,7 +1105,7 @@ export function SingularityInfo() {
           forward by over a decade in a single survey cycle, that hypothesis is getting harder to dismiss.
         </p>
         <p>
-          This site tracks <strong>{allPredictions.length} predictions</strong> across five
+          This site tracks <strong>{allPredictions.length} predictions</strong> across four
           flavors of singularity, because if we're going to be obsolete, we should at least have
           good data visualization for it.
         </p>
