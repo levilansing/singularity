@@ -73,7 +73,9 @@ function clampViewport(
   return { xMin, xMax, yMin, yMax };
 }
 
-const TOOLTIP_WIDTH = 320;
+const TOOLTIP_WIDTH_SM = 320;
+const TOOLTIP_WIDTH_MD = 380;
+const MD_BREAKPOINT = 768;
 const TOOLTIP_HEIGHT_ESTIMATE = 120;
 
 export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
@@ -322,25 +324,44 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
 
   const handleMouseEnter = useCallback((prediction: PredictionSlim, event: React.MouseEvent) => {
     if (isTouchDevice.current) return;
-    const container = containerRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    let x = event.clientX - rect.left + 10;
-    let y = event.clientY - rect.top - 10;
+    const svg = svgRef.current;
+    if (!svg) return;
 
-    // Clamp tooltip to stay within container
-    if (x + TOOLTIP_WIDTH > rect.width) {
-      x = event.clientX - rect.left - TOOLTIP_WIDTH - 10;
+    // Compute the dot's screen position from the SVG scales
+    const predictionFY = dateToFractionalYear(prediction.prediction_date);
+    const bestFY = prediction.predicted_date_best
+      ? dateToFractionalYear(prediction.predicted_date_best)
+      : prediction.predicted_year_best!;
+    const dotSvgX = xScale(bestFY, svgWidth);
+    const dotSvgY = yScale(predictionFY) + (overlapOffsets.get(prediction.id) ?? 0);
+
+    // Convert SVG coords to screen coords
+    const svgRect = svg.getBoundingClientRect();
+    const scaleX = svgRect.width / svgWidth;
+    const scaleY = svgRect.height / svgHeight;
+    const dotScreenX = svgRect.left + dotSvgX * scaleX;
+    const dotScreenY = svgRect.top + dotSvgY * scaleY;
+
+    const GAP = 16;
+    const tooltipWidth = window.innerWidth >= MD_BREAKPOINT ? TOOLTIP_WIDTH_MD : TOOLTIP_WIDTH_SM;
+
+    // Position to the right of the dot; if it overflows, flip to the left
+    let x = dotScreenX + GAP;
+    if (x + tooltipWidth > window.innerWidth) {
+      x = dotScreenX - tooltipWidth - GAP;
     }
     if (x < 0) x = 4;
-    if (y + TOOLTIP_HEIGHT_ESTIMATE > rect.height) {
-      y = event.clientY - rect.top - TOOLTIP_HEIGHT_ESTIMATE - 10;
+
+    // Vertically center on the dot, clamped to viewport
+    let y = dotScreenY - TOOLTIP_HEIGHT_ESTIMATE / 2;
+    if (y + TOOLTIP_HEIGHT_ESTIMATE > window.innerHeight) {
+      y = window.innerHeight - TOOLTIP_HEIGHT_ESTIMATE - 4;
     }
     if (y < 0) y = 4;
 
     setHoveredId(prediction.id);
     setTooltip({ prediction, x, y });
-  }, []);
+  }, [svgWidth, svgHeight, xScale, yScale, overlapOffsets]);
 
   const handleMouseLeave = useCallback(() => {
     setHoveredId(null);
@@ -376,6 +397,8 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
     const isMobile = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
     const onWheel = (e: WheelEvent) => {
+      // Require Cmd (Mac) or Ctrl (Windows/Linux) to zoom
+      if (!e.metaKey && !e.ctrlKey) return;
       const rect = svg.getBoundingClientRect();
       // Only zoom when cursor is in the plot area
       const scaleXCheck = svgWidth / rect.width;
@@ -450,6 +473,8 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
 
   // Pan handler (drag) — mouse: single pointer, touch: two fingers
   const isPanning = useRef(false);
+  const panPending = useRef(false); // waiting for movement threshold before panning
+  const PAN_THRESHOLD = 4; // px of movement before pan starts
   const panStart = useRef({ x: 0, y: 0, vp: vp });
 
   // Track active pointers for multi-touch gestures
@@ -488,20 +513,15 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    const isOnPoint = !!(e.target as SVGElement).closest?.(".timeline-row");
-
     // On desktop, confine interactions to the plot area; on mobile, allow anywhere on the card
     if (e.pointerType !== "touch" && !isInPlotArea(e.clientX, e.clientY)) return;
-    // On desktop, don't start pan from data points
-    if (e.pointerType !== "touch" && isOnPoint) return;
-
     if (e.pointerType === "touch") isTouchDevice.current = true;
 
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
     // Touch: need 2 fingers to start pan/pinch
     if (e.pointerType === "touch") {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       // Clear stale pointers — if we have more than 2 after adding this one,
       // something wasn't cleaned up. Keep only the two most recent.
       if (activePointers.current.size > 2) {
@@ -527,13 +547,24 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       return;
     }
 
-    // Mouse: single pointer pan
-    isPanning.current = true;
+    // Mouse: defer pan until movement threshold is met (so clicks on dots still work)
+    panPending.current = true;
+    isPanning.current = false;
     panStart.current = { x: e.clientX, y: e.clientY, vp: { ...vp } };
   }, [vp, isInPlotArea, getTwoFingerCenter, getTwoFingerDist]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Check movement threshold for mouse pan
+    if (panPending.current && !isPanning.current && e.pointerType !== "touch") {
+      const dx = e.clientX - panStart.current.x;
+      const dy = e.clientY - panStart.current.y;
+      if (Math.abs(dx) > PAN_THRESHOLD || Math.abs(dy) > PAN_THRESHOLD) {
+        isPanning.current = true;
+        panPending.current = false;
+      }
+    }
 
     if (!isPanning.current) return;
     const svg = svgRef.current;
@@ -605,6 +636,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     activePointers.current.delete(e.pointerId);
+    panPending.current = false;
     // End gesture as soon as we drop below 2 fingers (touch) or 1 (mouse)
     if (e.pointerType === "touch" || activePointers.current.size === 0) {
       isPanning.current = false;
@@ -954,7 +986,7 @@ export function Timeline({ predictions, selectedId, onSelect }: TimelineProps) {
       </div>
 
       <div className="flex items-center justify-center gap-3 mt-1.5">
-        <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none hidden sm:inline">Scroll to zoom · Drag to pan · Double-click to reset · Click legend to filter</span>
+        <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none hidden sm:inline">{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + scroll to zoom · Drag to pan · Double-click to reset · Click legend to filter</span>
         <span className="text-[0.65rem] text-(--text-dim) opacity-50 select-none sm:hidden">Two fingers to pan & zoom · Double-tap to reset</span>
         <button
           className="text-[0.65rem] text-(--text-dim) opacity-50 hover:opacity-80 cursor-pointer transition-opacity select-none"

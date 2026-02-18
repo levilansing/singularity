@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import type { PredictionSlim } from "../data/types";
 import { getHeadshotPath } from "../data/types";
 import { canonicalType, getTypeHex, getTypeBadge } from "../data/colors";
@@ -46,6 +47,17 @@ function formatMadeDate(dateStr: string): { label: string; prefix: string } {
   };
 }
 
+function formatRangeDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr.slice(0, 4);
+  const month = d.getUTCMonth();
+  const day = d.getUTCDate();
+  if ((month === 0 && day === 1) || (month === 11 && day === 31)) {
+    return String(d.getUTCFullYear());
+  }
+  return d.toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+}
+
 export function TimelineTooltip({ prediction, x, y }: TimelineTooltipProps) {
   const bestDate = formatPredictedDate(prediction);
   const type = canonicalType(prediction.prediction_type);
@@ -53,9 +65,9 @@ export function TimelineTooltip({ prediction, x, y }: TimelineTooltipProps) {
   const typeBadge = getTypeBadge(prediction.prediction_type);
   const made = formatMadeDate(prediction.prediction_date);
 
-  return (
+  return createPortal(
     <div
-      className="absolute pointer-events-none bg-[#1a1a28ee] border border-[#ffffff20] rounded-lg px-3 py-2.5 w-[320px] md:w-[380px] z-50 text-[0.8rem] shadow-[0_4px_20px_#00000060]"
+      className="fixed pointer-events-none bg-[#1a1a28ee] border border-[#ffffff20] rounded-lg px-3 py-2.5 w-[320px] md:w-[380px] z-50 text-[0.8rem] shadow-[0_4px_20px_#00000060]"
       style={{
         left: x,
         top: y,
@@ -86,6 +98,14 @@ export function TimelineTooltip({ prediction, x, y }: TimelineTooltipProps) {
 
       {/* Headline */}
       <div className="text-(--text-muted) leading-snug text-xs mt-2">{prediction.headline}</div>
-    </div>
+
+      {/* Date range */}
+      {prediction.predicted_date_low && prediction.predicted_date_high && (
+        <div className="text-[0.6rem] text-(--text-dim) font-mono mt-1.5 border-t border-[#ffffff10] pt-1.5">
+          Range: {formatRangeDate(prediction.predicted_date_low)} – {formatRangeDate(prediction.predicted_date_high)}
+        </div>
+      )}
+    </div>,
+    document.body
   );
 }

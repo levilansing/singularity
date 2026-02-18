@@ -59,7 +59,12 @@ export function PredictionCard({ prediction, detail, onRandom }: PredictionCardP
         </div>
         <div>
           <div className="text-[0.65rem] font-mono uppercase tracking-wider text-(--text-dim) mb-1">Target</div>
-          <div className="text-[0.85rem] text-(--text-muted) font-medium">{targetYear}</div>
+          <div className="text-[0.85rem] text-(--text-muted) font-medium">
+            {targetYear}
+            {prediction.predicted_year_low && prediction.predicted_year_high && (
+              <span className="text-[0.7rem] text-(--text-dim) font-normal ml-1.5">({prediction.predicted_year_low}–{prediction.predicted_year_high})</span>
+            )}
+          </div>
         </div>
         <div>
           <div className="text-[0.65rem] font-mono uppercase tracking-wider text-(--text-dim) mb-1">Type</div>
