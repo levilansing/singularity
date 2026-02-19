@@ -50,12 +50,18 @@ function buildHtml({
   ogUrl?: string;
   urgencyClass: string;
 }): string {
+  const ogImage = "https://when-is-the-singularity.com/og-image.png";
   const ogTags = [
     ogTitle ? `<meta property="og:title" content="${escapeAttr(ogTitle)}">` : "",
     ogDescription ? `<meta property="og:description" content="${escapeAttr(ogDescription)}">` : "",
     ogUrl ? `<meta property="og:url" content="${escapeAttr(ogUrl)}">` : "",
+    `<meta property="og:image" content="${ogImage}">`,
     `<meta property="og:type" content="website">`,
     `<meta property="og:site_name" content="When is the Singularity?">`,
+    `<meta name="twitter:card" content="summary_large_image">`,
+    ogTitle ? `<meta name="twitter:title" content="${escapeAttr(ogTitle)}">` : "",
+    ogDescription ? `<meta name="twitter:description" content="${escapeAttr(ogDescription)}">` : "",
+    `<meta name="twitter:image" content="${ogImage}">`,
   ].filter(Boolean).join("\n    ");
 
   return `<!doctype html>
@@ -66,6 +72,8 @@ function buildHtml({
     <meta name="description" content="${escapeAttr(description)}" />
     <meta name="theme-color" content="#0a0a0f" />
     ${ogTags}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
